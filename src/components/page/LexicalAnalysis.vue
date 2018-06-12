@@ -28,7 +28,8 @@ export default {
   data () {
     return {
       title: '词法分析',
-      RE: 'T_Do=do\nT_Double=double\nT_Mystery=[A-Za-z]'
+      RE: 'T_Do=do\nT_Double=double\nT_Mystery=[A-Za-z]',
+      REE: 'ssss'
     }
   }
 }
