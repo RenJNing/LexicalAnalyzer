@@ -12,6 +12,10 @@ export default new Router({
     {
       path: '/index/lexicalanalysis',
       component: resolve => require(['../components/page/LexicalAnalysis.vue'], resolve)
+    },
+    {
+      path: '/index/aaa',
+      component: resolve => require(['../components/page/AAA.vue'], resolve)
     }
   ]
 })
