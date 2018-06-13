@@ -15,7 +15,7 @@ export default new Router({
     },
     {
       path: '/index/aaa',
-      component: resolve => require(['../components/page/AAA.vue'], resolve)
+      component: resolve => require(['../components/page/Test.vue'], resolve)
     },
     {
       path: '/index/Token',

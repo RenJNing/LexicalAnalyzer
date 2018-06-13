@@ -1,6 +1,6 @@
 <template>
   <el-row :gutter="50">
-    <el-col :span="7" :offset="1">
+    <el-col :span="11" :offset="1">
       <el-row>
         <el-col :span="24">
           <h1>{{title}}</h1>
@@ -13,29 +13,31 @@
           <el-input type="textarea" :autosize="{ minRows: 10, maxRows: 10}" v-model="REForm.RE"></el-input>
             </el-form-item>
           <el-button type="primary" @click="submitForm('REForm')" :loading="loading">构建状态机</el-button>
-          <el-button type="primary" :disabled="disable" @click="goto('/index/Token')">Token模拟提取</el-button>
+          <el-button type="primary" :disabled="disable">Token模拟提取</el-button>
+          </el-form>
           <el-button type="primary" :disabled="disable">收藏</el-button>
           <el-button type="primary" :disabled="disable">查看代码</el-button>
-          </el-form>
-
         </el-col>
       </el-row>
     </el-col>
-    <el-col :span="15">
+    <el-col :span="11">
       <el-row>
         <el-col :span="24">
-          <span><b>NFA生成</b></span> <el-button @click="Zoom('NFA')">缩放</el-button>
-          <div id="NFA" :class="{'active':isChoose1}">
+          <span><b>NFA生成</b></span>
+          <div id="NFA">
+            <canvas height="200"></canvas>
           </div>
         </el-col>
         <el-col :span="24">
-          <span><b>DFA生成</b></span> <el-button @click="Zoom('DFA')">缩放</el-button>
-          <div id="DFA" :class="{'active':isChoose2}">
+          <span><b>DFA生成</b></span>
+          <div id="DFA">
+            <canvas height="200"></canvas>
           </div>
         </el-col>
         <el-col :span="24">
-          <span><b>DFA化简</b></span> <el-button @click="Zoom('DFA_S')">缩放</el-button>
-          <div id="DFA_S" :class="{'active':isChoose3}">
+          <span><b>DFA化简</b></span>
+          <div id="DFA_S">
+            <canvas height="200"></canvas>
           </div>
         </el-col>
       </el-row>
@@ -61,9 +63,6 @@ export default {
       callback()
     }
     return {
-      isChoose1: false,
-      isChoose2: false,
-      isChoose3: false,
       disable: true,
       loading: false,
       title: '词法分析',
@@ -79,50 +78,36 @@ export default {
     }
   },
   mounted: function () {
-    this.$nextTick(function () {
-      var nodesArray = [
-        {id: 1, label: 'Node 1'},
-        {id: 2, label: 'Node 2'},
-        {id: 3, label: 'Node 3'},
-        {id: 4, label: 'Node 4'},
-        {id: 5, label: 'Node 5'}
-      ]
-      var nodes = new DataSet(nodesArray)
+    var nodesArray = [
+      {id: 1, label: 'Node 1'},
+      {id: 2, label: 'Node 2'},
+      {id: 3, label: 'Node 3'},
+      {id: 4, label: 'Node 4'},
+      {id: 5, label: 'Node 5'}
+    ]
+    var nodes = new DataSet(nodesArray)
 
-      // create an array with edges
-      var edgesArray = [
-        {from: 1, to: 3},
-        {from: 1, to: 2},
-        {from: 2, to: 4},
-        {from: 2, to: 5}
-      ]
-      var edges = new DataSet(edgesArray)
+    // create an array with edges
+    var edgesArray = [
+      {from: 1, to: 3},
+      {from: 1, to: 2},
+      {from: 2, to: 4},
+      {from: 2, to: 5}
+    ]
+    var edges = new DataSet(edgesArray)
 
-      // create a network
-      var container = document.getElementById('NFA')
-      var data = {
-        nodes: nodes,
-        edges: edges
-      }
-      var options = {}
-      var network1 = new Network(container, data, options)
-      var network2 = new Network(document.getElementById('DFA'), data, options)
-      var network3 = new Network(document.getElementById('DFA_S'), data, options)
-    })
+    // create a network
+    var container = document.getElementById('NFA')
+    var data = {
+      nodes: nodes,
+      edges: edges
+    }
+    var options = {}
+    var network1 = new Network(container, data, options)
+    var network2 = new Network(document.getElementById('DFA'), data, options)
+    var network3 = new Network(document.getElementById('DFA_S'), data, options)
   },
   methods: {
-    Zoom (name) {
-      if (name === 'NFA') {
-        this.isChoose1 = !this.isChoose1
-      } else if (name === 'DFA') {
-        this.isChoose2 = !this.isChoose2
-      } else {
-        this.isChoose3 = !this.isChoose3
-      }
-    },
-    goto (url) {
-      this.$router.push(url)
-    },
     submitForm (formName) {
       const self = this
       self.$refs[formName].validate((valid) => {
@@ -137,9 +122,10 @@ export default {
           // let Params = {RE: re}
           // self.$axios.post(url, Params).then(function (response) {
           //   self.loading = false
-          self.disable = false
+          //   self.disable = false
           sessionStorage.setItem('input', self.REForm.RE)
           console.log(sessionStorage.getItem('input'))
+          self.$router.push('/index/Token')
           // }).catch(function (error) {
           //   self.loading = false
           //   console.log(error)
@@ -165,11 +151,4 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-div#NFA,div#DFA,div#DFA_S{
- height:240px;
- background-color:#DDDDDD;
-}
-div#NFA.active,div#DFA.active,div#DFA_S.active{
-height:600px;
-}
 </style>
