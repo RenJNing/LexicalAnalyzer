@@ -1,47 +1,44 @@
 <template>
-  <el-row :gutter="50">
-    <el-col :span="11" :offset="1">
-      <el-row>
-        <el-col :span="24">
-          <h1>{{title}}</h1>
-          <span>例子:<br>T_Do=do<br>T_Double=double<br>T_Mystery=[A-Za-z]<br>具体规则请查看 <a href="">简介</a></span>
-          <p></p>
+  <el-row>
+    <el-row :gutter="20">
+        <el-col :span="8">
+            <el-button type="text">NFA</el-button>
         </el-col>
-        <el-col :span="24">
-          <el-form ref="REForm" :rules="rules" :model="REForm" label-width="0px">
-            <el-form-item prop="RE">
-          <el-input type="textarea" :autosize="{ minRows: 10, maxRows: 10}" v-model="REForm.RE"></el-input>
-            </el-form-item>
-          <el-button type="primary" @click="submitForm('REForm')" :loading="loading">构建状态机</el-button>
-          <el-button type="primary" :disabled="disable">Token模拟提取</el-button>
-          </el-form>
-          <el-button type="primary" :disabled="disable">收藏</el-button>
-          <el-button type="primary" :disabled="disable">查看代码</el-button>
+        <el-col :span="8">
+            <el-button type="text">DFA</el-button>
         </el-col>
-      </el-row>
-    </el-col>
-    <el-col :span="11">
-      <el-row>
-        <el-col :span="24">
-          <span><b>NFA生成</b></span>
-          <div id="NFA">
-            <canvas height="200"></canvas>
-          </div>
+        <el-col :span="8">
+            <el-button type="text">DFA化简</el-button>
         </el-col>
+    </el-row>
+    <el-row>
         <el-col :span="24">
-          <span><b>DFA生成</b></span>
-          <div id="DFA">
-            <canvas height="200"></canvas>
-          </div>
+            <div id="NFA">
+                <canvas height="600"></canvas>
+            </div>
         </el-col>
+    </el-row>
+    <el-row>
         <el-col :span="24">
-          <span><b>DFA化简</b></span>
-          <div id="DFA_S">
-            <canvas height="200"></canvas>
-          </div>
+            <!-- TODO: -->
+            <p style="font-size: 46px">{{TokenForm.Token}}</p>
         </el-col>
-      </el-row>
-    </el-col>
+    </el-row>
+    <el-row>
+        <el-col :span="12">
+            <p>{{RE}}</p>
+        </el-col>
+        <el-col :span="12">
+        <el-form ref="TokenForm" :rules="rules" :model="TokenForm" label-width="0px">
+        <el-form-item prop="Token">
+        <el-input type="textarea" :autosize="{ minRows: 5, maxRows: 5}" v-model="TokenForm.Token"></el-input>
+        </el-form-item>
+        <el-button type="primary">开始分词</el-button>
+        <el-button>清空</el-button>
+        <el-button @click="nextstep()">下一步</el-button>
+        </el-form>
+        </el-col>
+    </el-row>
   </el-row>
 </template>
 
@@ -63,14 +60,12 @@ export default {
       callback()
     }
     return {
-      disable: true,
-      loading: false,
-      title: '词法分析',
-      REForm: {
-        RE: 'T_Do=do\nT_Double=double\nT_Mystery=[A-Za-z]'
+      RE: '',
+      TokenForm: {
+        Token: 'DOUBDOUBLE'
       },
       rules: {
-        RE: [
+        Token: [
           {required: true, message: '输入不能为空', tirgger: 'blur'},
           { validator: validateRe, trigger: 'blur' }
         ]
@@ -141,6 +136,10 @@ export default {
           return false
         }
       })
+    },
+    nextstep () {
+      const self = this
+      
     }
   }
 }
