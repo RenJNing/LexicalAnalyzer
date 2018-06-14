@@ -1,140 +1,149 @@
 <template>
-  <el-row :gutter="50">
-    <el-col :span="11" :offset="1">
-      <el-row>
-        <el-col :span="24">
-          <h1>{{title}}</h1>
-          <span>例子:<br>T_Do=do<br>T_Double=double<br>T_Mystery=[A-Za-z]<br>具体规则请查看 <a href="">简介</a></span>
-          <p></p>
+  <el-row>
+    <el-row :gutter="20">
+        <el-col :span="8">
+            <el-button type="text">NFA</el-button>
         </el-col>
-        <el-col :span="24">
-          <el-form ref="REForm" :rules="rules" :model="REForm" label-width="0px">
-            <el-form-item prop="RE">
-          <el-input type="textarea" :autosize="{ minRows: 10, maxRows: 10}" v-model="REForm.RE"></el-input>
-            </el-form-item>
-          <el-button type="primary" @click="submitForm('REForm')" :loading="loading">构建状态机</el-button>
-          <el-button type="primary" :disabled="disable">Token模拟提取</el-button>
-          </el-form>
-          <el-button type="primary" :disabled="disable">收藏</el-button>
-          <el-button type="primary" :disabled="disable">查看代码</el-button>
+        <el-col :span="8">
+            <el-button type="text">DFA</el-button>
         </el-col>
-      </el-row>
-    </el-col>
-    <el-col :span="11">
-      <el-row>
-        <el-col :span="24">
-          <span><b>NFA生成</b></span>
-          <div id="NFA">
-            <canvas height="200"></canvas>
-          </div>
+        <el-col :span="8">
+            <el-button type="text">DFA化简</el-button>
         </el-col>
+    </el-row>
+    <el-row>
         <el-col :span="24">
-          <span><b>DFA生成</b></span>
-          <div id="DFA">
-            <canvas height="200"></canvas>
-          </div>
+            <div id="NFA">
+                <canvas height="600"></canvas>
+            </div>
         </el-col>
+    </el-row>
+    <el-row>
         <el-col :span="24">
-          <span><b>DFA化简</b></span>
-          <div id="DFA_S">
-            <canvas height="200"></canvas>
-          </div>
+            <!-- TODO: -->
+            <p style="font-size: 46px" id="p" v-html="Token"></p>
         </el-col>
-      </el-row>
-    </el-col>
+    </el-row>
+    <el-row>
+        <el-col :span="12">
+            <p v-html="RE"></p>
+        </el-col>
+        <el-col :span="12">
+        <el-form ref="TokenForm" :rules="rules" :model="TokenForm" label-width="0px">
+        <el-form-item prop="Token">
+        <el-input type="textarea" :autosize="{ minRows: 5, maxRows: 5}" v-model="TokenForm.Token"></el-input>
+        </el-form-item>
+        <el-button type="primary" @click="submitForm('TokenForm')">开始分词</el-button>
+        <el-button>清空</el-button>
+        <el-button @click="previous()">上一步</el-button>
+        <el-button @click="next()">下一步</el-button>
+        </el-form>
+        </el-col>
+    </el-row>
   </el-row>
 </template>
 
 <script>
 import {DataSet, Network} from 'vis'
 import { Message } from 'element-ui'
+import API from '../../api/FNA'
+
 export default {
   data () {
-    // 验证正则表达式是否合法
-    var validateRe = (rule, value, callback) => {
-      let input = value.split('\n')
-      for (let i = 0; i < input.length; i++) {
-        try {
-          let re = new RegExp(input[i].substring(input[i].indexOf('=') + 1))
-        } catch (e) {
-          callback(new Error('第' + (i + 1).toString() + '条正则表达式不合法，请重新输入'))
-        }
-      }
-      callback()
-    }
     return {
-      disable: true,
-      loading: false,
-      title: '词法分析',
-      REForm: {
-        RE: 'T_Do=do\nT_Double=double\nT_Mystery=[A-Za-z]'
+      myNFA1: {},
+      Token: '',
+      RE: '',
+      TokenForm: {
+        Token: 'dododouble'
       },
       rules: {
-        RE: [
-          {required: true, message: '输入不能为空', tirgger: 'blur'},
-          { validator: validateRe, trigger: 'blur' }
+        Token: [
+          {required: true, message: '输入不能为空', tirgger: 'blur'}
         ]
       }
     }
   },
   mounted: function () {
-    var nodesArray = [
-      {id: 1, label: 'Node 1'},
-      {id: 2, label: 'Node 2'},
-      {id: 3, label: 'Node 3'},
-      {id: 4, label: 'Node 4'},
-      {id: 5, label: 'Node 5'}
-    ]
-    var nodes = new DataSet(nodesArray)
+    const self = this
+    self.RE = (function () {
+      let arr = sessionStorage.getItem('input').split('\n')
+      let str1 = "<p style='font-size: 25px;word-break:break-all;'>"
+      for (let i = 0; i < arr.length; i++) {
+        str1 = str1 + "<span class='mode" + i.toString() + "'>" + arr[i] + '</span><br>'
+      }
+      str1 = str1 + '</p>'
+      return str1
+    })()
+    self.addCSS(self.getCsstext())
+    this.$nextTick(function () {
+      var nodesArray = [
+        {id: 1, label: 'Node 1'},
+        {id: 2, label: 'Node 2'},
+        {id: 3, label: 'Node 3'},
+        {id: 4, label: 'Node 4'},
+        {id: 5, label: 'Node 5'}
+      ]
+      var nodes = new DataSet(nodesArray)
 
-    // create an array with edges
-    var edgesArray = [
-      {from: 1, to: 3},
-      {from: 1, to: 2},
-      {from: 2, to: 4},
-      {from: 2, to: 5}
-    ]
-    var edges = new DataSet(edgesArray)
+      // create an array with edges
+      var edgesArray = [
+        {from: 1, to: 3},
+        {from: 1, to: 2},
+        {from: 2, to: 4},
+        {from: 2, to: 5}
+      ]
+      var edges = new DataSet(edgesArray)
 
-    // create a network
-    var container = document.getElementById('NFA')
-    var data = {
-      nodes: nodes,
-      edges: edges
-    }
-    var options = {}
-    var network1 = new Network(container, data, options)
-    var network2 = new Network(document.getElementById('DFA'), data, options)
-    var network3 = new Network(document.getElementById('DFA_S'), data, options)
+      // create a network
+      var container = document.getElementById('NFA')
+      var data = {
+        nodes: nodes,
+        edges: edges
+      }
+      var options = {}
+      var network1 = new Network(container, data, options)
+      var network2 = new Network(document.getElementById('DFA'), data, options)
+      var network3 = new Network(document.getElementById('DFA_S'), data, options)
+    })
   },
   methods: {
     submitForm (formName) {
       const self = this
       self.$refs[formName].validate((valid) => {
         if (valid) {
-          self.loading = true
-          let re = []
-          let input = self.REForm.RE.split('\n')
-          for (let i = 0; i < input.length; i++) {
-            re.push(input[i].substring(input[i].indexOf('=') + 1))
-          }
-          // let url = '/RE'
-          // let Params = {RE: re}
-          // self.$axios.post(url, Params).then(function (response) {
-          //   self.loading = false
-          //   self.disable = false
-          sessionStorage.setItem('input', self.REForm.RE)
-          console.log(sessionStorage.getItem('input'))
-          self.$router.push('/index/Token')
-          // }).catch(function (error) {
-          //   self.loading = false
-          //   console.log(error)
-          //   Message({
-          //     message: '请检查网络并重试',
-          //     type: 'error',
-          //     center: true
-          //   })
-          // })
+          self.Token = self.TokenForm.Token
+          var alphabet = ['ε', 'b', 'd', 'e', 'l', 'o', 'u']
+          var transitionTable = [
+            [[1, 4], [], [], [], [], [], []], // 0
+            [[], [], [2], [], [], [], []], // 1
+            [[], [], [], [], [], [3], []], // 2
+            [[], [], [], [], [], [], []], // 3
+            [[], [], [5], [], [], [], []], // 4
+            [[], [], [], [], [], [6], []], // 5
+            [[], [], [], [], [], [], [7]], // 6
+            [[], [8], [], [], [], [], []], // 7
+            [[], [], [], [], [9], [], []], // 8
+            [[], [], [], [10], [], [], []], // 9
+            [[], [], [], [], [], [], []] // 10
+          ]
+
+          var acceptState2patternId = [
+            {
+              state: 3,
+              REId: 0
+            }, {
+              state: 10,
+              REId: 1
+            }
+          ]
+          // var myNFA = API(transitionTable, alphabet, acceptState2patternId)
+          // myNFA.init()
+          // myNFA.feedText(self.TokenForm.Token)
+          self.myNFA1 = API(transitionTable, alphabet, acceptState2patternId)
+          self.myNFA1.init()
+          self.myNFA1.feedText(self.TokenForm.Token)
+          // TODO：开始分词后 输入框不能编辑
         } else {
           Message({
             message: '格式错误，请检查输入',
@@ -144,11 +153,62 @@ export default {
           return false
         }
       })
+    },
+    next () {
+      const self = this
+      let data = self.myNFA1.nextStep()
+      console.log(data)
+      let recognized = data.windowInfo.recognizedTokens.map(obj => {
+        let temp = []
+        temp.push(obj.startIndex)
+        temp.push(obj.endIndex)
+        temp.push(obj.REId)
+        return temp
+      })
+      let remains = [data.windowInfo.remains.startIndex, data.windowInfo.remains.endIndex, 888]
+      let scanning = [data.windowInfo.scanning.startIndex, data.windowInfo.scanning.endIndex, 999]
+      recognized.push(scanning)
+      recognized.push(remains)
+      let html = self.cut(self.TokenForm.Token, recognized)
+      self.Token = html
+    },
+    previous () {
+
+    },
+    cut (str, arr) {
+      let str1 = ''
+      for (let i of arr) {
+        if (i[2] < 888) {
+          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], (i[1] + 1)) + '&nbsp;' + '</span>'
+        } else {
+          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], (i[1] + 1)) + '</span>'
+        }
+      }
+      return str1
+    },
+    addCSS (cssText) {
+      let style = document.createElement('style')
+      let head = document.head || document.getElementsByTagName('head')[0]
+      style.type = 'text/css'
+      let textNode = document.createTextNode(cssText)
+      style.appendChild(textNode)
+      head.appendChild(style)
+    },
+    getCsstext () {
+      let length = sessionStorage.getItem('input').split('\n').length
+      let cssText = '\n'
+      for (let i = 0; i < length; i++) {
+        cssText = cssText + 'span.mode' + i.toString() + '{ color:' + '#' + Math.floor(Math.random() * 0xffffff).toString(16) + ';}\n'
+      }
+      return cssText
     }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style>
+span.mode999{
+  color:red;
+}
 </style>
