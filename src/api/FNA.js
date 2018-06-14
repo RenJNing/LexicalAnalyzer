@@ -1,11 +1,11 @@
-export default function (TB, A, state2pattern) {
-    let _range = length => Array.from({ length }).map((v, k) => k);
+export {create_NFA} 
+function create_NFA(TB, A, state2pattern){
+	let _range = length => Array.from({ length }).map((v, k) => k);
 	var transitionTable = TB;
 	var alphabet = A;
-	// acceptState2patternId: 一个数组，成员为（js对象），state:接受态id，REId:正则表达式id
+	// acceptState2patternId: 一个数组，成员为（js对象）{state:接受态id ,REId:正则表达式id}
 	var acceptState2patternId = state2pattern;
 	// 先根据转换表生成 NFA 图的节点和边信息，可视化用。 
-	// var NFAStates = _range(1, transitionTable.length);
 	var NFAStates = _range(transitionTable.length);
 	// var NFAStates = _range(transitionTable.length+1);
 	var NFAStatesTransition = [];
@@ -20,25 +20,21 @@ export default function (TB, A, state2pattern) {
 		}
 	}
 
-
-	// state是NFA的当前状态，states是NFA的当前状态集, maximalMunchState 是NFA当前到达的最长子串接受态
+	/***************************************  状态机状态    */
 	var text;
 	var scanStartIndex = -1;
 	var scanEndIndex = -1;
 	// currentStates： NFA 当前状态集合: 成员： js对象 {stateId: 4, fromId: 3}
-	// acceptedStates： NFA 走过接受态的集合,记录状态id 和 走到该状态的偏移量，
-	// 例如： [ {stateId: 5, offset: 3, fromId: 4}, [...] ]
+	// acceptedStates： NFA 走过接受态的集合，成员： {stateId: 接受态id, offset: 状态机走到该状态的偏移量, fromId: 4}
 	// 多添加 fromId 保留可视化信息， （状态机本来不需要记住这个东西。。。）
 	var currentStates = [];
 	var acceptedStates = [];
-	// historialStates 存放状态历史，每次next压入一个 
-	// {scanStartIndex: scanStartIndex, scanEndIndex: scanEndIndex, currentStates: currentStates, acceptedStates:acceptedStates}
+	// historialStates 存放{scanStartIndex: scanStartIndex, scanEndIndex: scanEndIndex, currentStates: currentStates, acceptedStates:acceptedStates}
 	// 
 	var historialStates = [];
 	var historialVisualInfos = [];
 	var historialWindowInfos = [];
-	// 
-
+	/***************************************  状态机状态    */
 
 	return {
 		getNFAStates: function () {
@@ -51,11 +47,14 @@ export default function (TB, A, state2pattern) {
 			return NFAAcceptStates;
 		},
 		init: function () {
-			console.log("--- init()");
-			// 开始匹配新的 Token 是调用： 第一次开始使用 NFA时， 以及 每次匹配到一个 Token 准备匹配新的 Token 时
-			// 默认初始态是 state = 1
+			// 初始化 状态机状态
+			scanStartIndex = -1;
+			scanEndIndex = -1;
 			currentStates = [];
 			acceptedStates = [];
+			historialStates = [];
+			historialVisualInfos = [];
+			historialWindowInfos = [];
 
 			currentStates.push({ stateId: 0, fromId: -1 });
 		},
@@ -112,8 +111,6 @@ export default function (TB, A, state2pattern) {
 								break;
 							}
 						}
-
-
 						// 重置 NFA， 
 						// 重置 NFA内部的 scan index (scanStartIndex和scanEndIndex右移切掉的token的长度maxOffset)
 						// 重置 反馈给可视化的 scanning 的 index (scanning.startIndex和scanning.endIndex)
@@ -365,7 +362,6 @@ export default function (TB, A, state2pattern) {
 					}
 				}
 
-
 				currentStates = nextStates;
 				acceptedStates = nextAcceptStates;
 				historialStates.push({
@@ -414,8 +410,28 @@ export default function (TB, A, state2pattern) {
 			}
 		},
 		preStep: function () {
-			console.log("--- ");
-			
+			console.log("--------------- ");
+			var CODE = 10;
+			if(historialStates.length===0){
+				CODE = 11;
+				return{
+					code: CODE
+				};
+			}
+			historialStates.pop();
+			historialVisualInfos.pop();
+			historialWindowInfos.pop();
+			scanStartIndex = historialStates[historialStates.length-1].scanStartIndex;
+			scanEndIndex = historialStates[historialStates.length-1].scanEndIndex;
+			currentStates = historialStates[historialStates.length-1].currentStates;
+			acceptedStates = historialStates[historialStates.length-1].acceptedStates;
+
+			var resp = {
+				code: CODE,
+				info: historialVisualInfos[historialVisualInfos.length - 1],
+				windowInfo: historialWindowInfos[historialWindowInfos.length - 1]
+			};
+			return resp;
 		}
 
 	} // end return

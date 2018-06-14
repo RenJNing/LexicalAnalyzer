@@ -15,6 +15,10 @@ export default new Router({
     },
     {
       path: '/index/aaa',
+      component: resolve => require(['../components/vis1.vue'], resolve)
+    },
+    {
+      path: '/index/nnn',
       component: resolve => require(['../components/page/Test.vue'], resolve)
     },
     {

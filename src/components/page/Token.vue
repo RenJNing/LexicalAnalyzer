@@ -123,7 +123,7 @@ export default {
     },
     next () {
       const self = this
-      let html = self.cut(self.TokenForm.Token, [[0, 2, 1], [2, 5, 2], [5, 10, 5]])
+      let html = self.cut(self.TokenForm.Token, [[0, 5, 1]])
       self.Token = html
     },
     previous () {

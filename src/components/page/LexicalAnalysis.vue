@@ -25,8 +25,8 @@
       <el-row>
         <el-col :span="24">
           <span><b>NFA生成</b></span> <el-button @click="Zoom('NFA')">缩放</el-button>
-          <div id="NFA" :class="{'active':isChoose1}">
-          </div>
+          <el-button @click="fitAnimated()">显示完整状态机</el-button>
+            <div id="NFA" :class="{'active':isChoose1}" :ref="this.myvis"></div>
         </el-col>
         <el-col :span="24">
           <span><b>DFA生成</b></span> <el-button @click="Zoom('DFA')">缩放</el-button>
@@ -47,6 +47,12 @@
 import {DataSet, Network} from 'vis'
 import { Message } from 'element-ui'
 export default {
+  props: {
+    myvis: {
+      type: [String, Number],
+      default: ''
+    }
+  },
   data () {
     // 验证正则表达式是否合法
     var validateRe = (rule, value, callback) => {
@@ -61,6 +67,26 @@ export default {
       callback()
     }
     return {
+      array: [
+        [[], [1, 3], [], [], [], []], // 0
+        [[], [], [], [], [2], []], // 1
+        [[], [], [], [], [], []], // 2
+        [[], [], [], [], [4], []], // 3
+        [[], [], [], [], [], [5]], // 4
+        [[6], [], [], [], [], []], // 5
+        [[], [], [], [7], [], []], // 6
+        [[], [], [8], [], [], []], // 7
+        [[], [], [], [], [], []]], // 8
+      alpha: ['b', 'd', 'e', 'l', 'o', 'u'],
+      acceptState: [
+        {
+          state: 2,
+          REId: 0
+        }, {
+          state: 8,
+          REId: 1
+        }
+      ],
       isChoose1: false,
       isChoose2: false,
       isChoose3: false,
@@ -79,38 +105,16 @@ export default {
     }
   },
   mounted: function () {
-    this.$nextTick(function () {
-      var nodesArray = [
-        {id: 1, label: 'Node 1'},
-        {id: 2, label: 'Node 2'},
-        {id: 3, label: 'Node 3'},
-        {id: 4, label: 'Node 4'},
-        {id: 5, label: 'Node 5'}
-      ]
-      var nodes = new DataSet(nodesArray)
-
-      // create an array with edges
-      var edgesArray = [
-        {from: 1, to: 3},
-        {from: 1, to: 2},
-        {from: 2, to: 4},
-        {from: 2, to: 5}
-      ]
-      var edges = new DataSet(edgesArray)
-
-      // create a network
-      var container = document.getElementById('NFA')
-      var data = {
-        nodes: nodes,
-        edges: edges
-      }
-      var options = {}
-      var network1 = new Network(container, data, options)
-      var network2 = new Network(document.getElementById('DFA'), data, options)
-      var network3 = new Network(document.getElementById('DFA_S'), data, options)
-    })
+    this.fresh()
   },
   methods: {
+    fitAnimated () {
+      var options = {
+        duration: 1000,
+        easingFunction: 'easeInOutQuad'
+      }
+      this.network.fit({animation: options})
+    },
     Zoom (name) {
       if (name === 'NFA') {
         this.isChoose1 = !this.isChoose1
@@ -158,6 +162,123 @@ export default {
           return false
         }
       })
+    },
+    myfunction1 (arr, alpha) {
+      var answer = []
+      for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr[0].length; j++) {
+          if (arr[i][j] == null) {
+          } else {
+            var unit = arr[i][j].toString().split(',')
+            /* unit = unit.map(function(data){
+                                return +data;
+                            }); */
+            for (let k = 0; k < unit.length; k++) {
+              answer.push({
+                from: i, to: parseInt(unit[k]), arrows: 'to', label: alpha[j], color: {color: '#2b7ce9'}
+              })
+            }
+          }
+        }
+      }
+      return answer
+    },
+    myfunction2 (arr) {
+      var answer = []
+      for (let i = 0; i < arr.length; i++) {
+        answer[i] = {
+          id: i, label: i.toString(), color: {background: ''}
+        }
+      }
+      for (let i = 0; i < this.acceptState.length; i++) {
+        answer[this.acceptState[i].state].borderWidth = 5
+      }
+      return answer
+    },
+    async fresh () {
+      this.edges = new DataSet(this.myfunction1(this.array, this.alpha))
+      this.nodes = new DataSet(this.myfunction2(this.array))
+      var data = {
+        nodes: this.nodes,
+        edges: this.edges
+      }
+      this.$nextTick(
+        () => {
+          // console.log(this.myvis)
+          // console.log(this.$refs[this.myvis])
+          let container = this.$refs[this.myvis]
+          let options = {
+            autoResize: true,
+            height: '100%',
+            width: '100%',
+            clickToUse: true,
+
+            configure: {// 打开控制面板，可以调整有向图的参数
+              enabled: false,
+              filter: 'nodes,edges',
+              container: undefined,
+              showButton: true
+            },
+
+            layout: {
+              randomSeed: this.randomSeed,
+              hierarchical: {
+                enabled: false,
+                // parentCentralization: false,
+                direction: 'LR', // UD, DU, LR, RL
+                sortMethod: 'directed' // hubsize, directed
+              }
+            },
+            physics: {
+              enabled: true
+            }
+            // manipulation: {}
+
+          }
+          this.network = new Network(container, data, options)
+          // let all_movie = this.movie_list.concat(this.movie)
+          // console.log('all', all_movie, typeof all_movie)
+
+          // 重新渲染后需要重新添加事件
+          /* network.on("click", (params) => {
+                             params.event = "[original event]";
+                             console.log(params)
+                             // nodes 为空表示点击的是边
+
+                             // console.log('单击的节点id为', params.nodes)
+
+                             if (params.nodes.length > 0) {
+                                 let click_node_id = params.nodes[0]
+                                 let m = all_movie.find((val, index) => {
+                                     // console.log(val, index)
+                                     return val['id'] == click_node_id
+                                 })
+                                 this.$emit('node_click', m)
+                             }
+
+                             // document.getElementById('eventSpan').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
+
+                             // console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+                         });
+
+                         network.on("doubleClick", (params) => {
+                             params.event = "[original event]";
+                             // document.getElementById('eventSpan').innerHTML = '<h2>doubleClick event:</h2>' + JSON.stringify(params, null, 4);
+                             // console.log(params)
+                             // nodes 为空表示点击的是边
+                             // console.log('双击的节点id为', params.nodes)
+
+                             if (params.nodes.length > 0) {
+                                 let click_node_id = params.nodes[0]
+                                 // let m = all_movie.find((val, index) => {
+                                 //   console.log(val, index)
+                                 //   return val['id'] == click_node_id
+                                 // })
+                                 this.$emit('node_double_click', click_node_id)
+                             }
+                         }); */
+        }
+      )
     }
   }
 }
@@ -170,6 +291,8 @@ div#NFA,div#DFA,div#DFA_S{
  background-color:#DDDDDD;
 }
 div#NFA.active,div#DFA.active,div#DFA_S.active{
-height:600px;
+height:auto;
+margin-left:-50%;
+background-color:rgba(221,221,221,0.3)
 }
 </style>

@@ -1,54 +1,26 @@
+<!-- 代码源：https://my.oschina.net/ahaoboy/blog/1618784?p=1    -->
+<!-- 代码源：https://my.oschina.net/ahaoboy/blog/1618784?p=1    -->
+<!-- 代码源：https://my.oschina.net/ahaoboy/blog/1618784?p=1    -->
+<!-- 代码源：https://my.oschina.net/ahaoboy/blog/1618784?p=1    -->
+
 <template>
-  <el-row>
-    <el-row :gutter="20">
-        <el-col :span="8">
-            <el-button type="text">NFA</el-button>
-        </el-col>
-        <el-col :span="8">
-            <el-button type="text">DFA</el-button>
-        </el-col>
-        <el-col :span="8">
-            <el-button type="text">DFA化简</el-button>
-        </el-col>
-    </el-row>
-    <el-row>
-        <el-col :span="24">
-           <div style="height: 400px;width: 600px;" :ref="this.myvis"></div>
-        </el-col>
-    </el-row>
-    <el-row>
-        <el-col :span="24">
-            <!-- TODO: -->
-            <p style="font-size: 46px" id="p" v-html="Token"></p>
-        </el-col>
-    </el-row>
-    <el-row>
-        <el-col :span="12">
-            <p v-html="RE"></p>
-        </el-col>
-        <el-col :span="12">
-        <el-form ref="TokenForm" :rules="rules" :model="TokenForm" label-width="0px">
-        <el-form-item prop="Token">
-        <el-input type="textarea" :autosize="{ minRows: 5, maxRows: 5}" v-model="TokenForm.Token"></el-input>
-        </el-form-item>
-        <el-button type="primary" @click="submitForm('TokenForm')">开始分词</el-button>
-        <el-button>清空</el-button>
-        <el-button @click="previous()">上一步</el-button>
-        <el-button @click="next()">下一步</el-button>
+    <div>
+        <div style="display: flex;height: 100%;width: 100%; overflow-y: scroll">
+            <div style="height: 400px;width: 600px;" :ref="this.myvis"></div>
+        </div>
+        <el-button @click="previous()">上一个</el-button>
+        <el-button @click="next()">下一个</el-button>
+        <!--el-button @click="focusNode()">随机聚焦</el-button-->
         <el-button @click="fitAnimated()">显示完整状态机</el-button>
         <el-button @click="refresh()">重新生成</el-button>
         <el-button @click="end()">结束</el-button>
-        </el-form>
-        </el-col>
-    </el-row>
-  </el-row>
+    </div>
 </template>
 
 <script>
-import {DataSet, Network} from 'vis'
-import { Message } from 'element-ui'
-import {create_NFA} from '../../api/FNA'
-
+// create an array with nodes
+import {DataSet, Network} from '../../node_modules/vis/dist/vis.js'
+import {create_NFA} from '../api/FNA'
 export default {
   props: {
     myvis: {
@@ -56,6 +28,12 @@ export default {
       default: ''
     }
   },
+  /* watch: {
+            myvis() {
+                console.log('myvis change')
+                this.refresh()
+            }
+        }, */
   data () {
     return {
       array: [
@@ -84,150 +62,11 @@ export default {
       randomSeed: 0,
       recordNode: [],
       recordEdge: [],
-      activeFlag: 0,
-      FNAMachine: {},
-      Token: '',
-      RE: '',
-      TokenForm: {
-        Token: 'dododouble'
-      },
-      rules: {
-        Token: [
-          {required: true, message: '输入不能为空', tirgger: 'blur'}
-        ]
-      }
+      activeFlag: 0
     }
   },
-  mounted: function () {
-    const self = this
-    self.RE = (function () {
-      let arr = sessionStorage.getItem('input').split('\n')
-      let str1 = "<p style='font-size: 25px;word-break:break-all;'>"
-      for (let i = 0; i < arr.length; i++) {
-        str1 = str1 + "<span class='mode" + i.toString() + "'>" + arr[i] + '</span><br>'
-      }
-      str1 = str1 + '</p>'
-      return str1
-    })()
-    self.addCSS(self.getCsstext())
-    this.fresh()
-  },
   methods: {
-    submitForm (formName) {
-      const self = this
-      self.$refs[formName].validate((valid) => {
-        if (valid) {
-          self.Token = self.TokenForm.Token
-          // var myNFA = API(transitionTable, alphabet, acceptState2patternId)
-          // myNFA.init()
-          // myNFA.feedText(self.TokenForm.Token)
-          self.FNAMachine = create_NFA(this.array, this.alpha, this.acceptState)
-          self.FNAMachine.init()
-          self.FNAMachine.feedText(self.TokenForm.Token)
-          // TODO：开始分词后 输入框不能编辑
-        } else {
-          Message({
-            message: '格式错误，请检查输入',
-            type: 'error',
-            center: true
-          })
-          return false
-        }
-      })
-    },
-    next () {
-      let nextState = this.FNAMachine.nextStep()
-      if (nextState.code == 0) {
-        this.$message({
-          type: 'info',
-          message: 'code==0 o(╯□╰)o'
-        })
-      } else if (nextState.code == 1) {
-        this.$message({
-          type: 'success',
-          message: 'code==1 o(╯□╰)o' +
-                            '匹配到正则表达式'
-        })
-        this.change(this.recordNode[this.recordNode.length - 1], 2)
-        if (this.recordNode.length >= 2) {
-          this.change(this.recordNode[this.recordNode.length - 2], 0)
-        }
-        this.change(nextState.info.highlightNodes, 1)
-        this.recordNode.push(nextState.info.highlightNodes)
-        this.activeFlag++
-      } else {
-        this.change(this.recordNode[this.recordNode.length - 1], 2)
-        if (this.recordNode.length >= 2) {
-          this.change(this.recordNode[this.recordNode.length - 2], 0)
-        }
-        this.change(nextState.info.highlightNodes, 1)
-        this.recordNode.push(nextState.info.highlightNodes)
-        this.activeFlag++
-      }
-      const self = this
-      // let nextState = self.FNAMachine.nextStep()
-      console.log(nextState)
-      let recognized = nextState.windowInfo.recognizedTokens.map(obj => {
-        let temp = []
-        temp.push(obj.startIndex)
-        temp.push(obj.endIndex)
-        temp.push(obj.REId)
-        return temp
-      })
-      let remains = [nextState.windowInfo.remains.startIndex, nextState.windowInfo.remains.endIndex, 888]
-      let scanning = [nextState.windowInfo.scanning.startIndex, nextState.windowInfo.scanning.endIndex, 999]
-      recognized.push(scanning)
-      recognized.push(remains)
-      let html = self.cut(self.TokenForm.Token, recognized)
-      self.Token = html
-    },
-    previous () {
-      const self = this
-      let data = self.FNAMachine.preStep()
-      console.log(data)
-      let recognized = data.windowInfo.recognizedTokens.map(obj => {
-        let temp = []
-        temp.push(obj.startIndex)
-        temp.push(obj.endIndex)
-        temp.push(obj.REId)
-        return temp
-      })
-      let remains = [data.windowInfo.remains.startIndex, data.windowInfo.remains.endIndex, 888]
-      let scanning = [data.windowInfo.scanning.startIndex, data.windowInfo.scanning.endIndex, 999]
-      recognized.push(scanning)
-      recognized.push(remains)
-      let html = self.cut(self.TokenForm.Token, recognized)
-      console.log(recognized)
-      console.log(html)
-      self.Token = html
-    },
-    cut (str, arr) {
-      let str1 = ''
-      for (let i of arr) {
-        if (i[2] < 888) {
-          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], (i[1] + 1)) + '&nbsp;' + '</span>'
-        } else {
-          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], (i[1] + 1)) + '</span>'
-        }
-      }
-      return str1
-    },
-    addCSS (cssText) {
-      let style = document.createElement('style')
-      let head = document.head || document.getElementsByTagName('head')[0]
-      style.type = 'text/css'
-      let textNode = document.createTextNode(cssText)
-      style.appendChild(textNode)
-      head.appendChild(style)
-    },
-    getCsstext () {
-      let length = sessionStorage.getItem('input').split('\n').length
-      let cssText = '\n'
-      for (let i = 0; i < length; i++) {
-        cssText = cssText + 'span.mode' + i.toString() + '{ color:' + '#' + Math.floor(Math.random() * 0xffffff).toString(16) + ';}\n'
-      }
-      return cssText
-    },
+    // 按照 现有属性重新渲染页面
     myfunction1 (arr, alpha) {
       var answer = []
       for (let i = 0; i < arr.length; i++) {
@@ -301,7 +140,10 @@ export default {
 
           }
           this.network = new Network(container, data, options)
+          this.FNAMachine = create_NFA(this.array, this.alpha, this.acceptState)
+          this.FNAMachine.init()
 
+          this.FNAMachine.feedText('dododouble')
           this.recordNode.push([0])
           this.activeFlag++
           this.change(this.recordNode[0], 1)
@@ -354,6 +196,7 @@ export default {
       this.end()
       this.fresh()
     },
+    // 调整到合适大小
     fitAnimated () {
       var options = {
         duration: 1000,
@@ -407,6 +250,62 @@ export default {
 
       // this.focusNode(nodes[0]);
     },
+    // 下一个状态
+    next () {
+      console.log(this.recordNode)
+      let nextState = this.FNAMachine.nextStep()
+      if (nextState.code == 0) {
+        this.$message({
+          type: 'info',
+          message: 'code==0 o(╯□╰)o'
+        })
+      } else if (nextState.code == 1) {
+        this.$message({
+          type: 'success',
+          message: 'code==1 o(╯□╰)o' +
+                            '匹配到正则表达式'
+        })
+        this.change(this.recordNode[this.recordNode.length - 1], 2)
+        if (this.recordNode.length >= 2) {
+          this.change(this.recordNode[this.recordNode.length - 2], 0)
+        }
+        console.log('---执行“下一步”操作')
+        console.log(nextState.code)
+        console.log(nextState.info.highlightNodes)
+        this.change(nextState.info.highlightNodes, 1)
+        this.recordNode.push(nextState.info.highlightNodes)
+        this.activeFlag++
+      } else {
+        this.change(this.recordNode[this.recordNode.length - 1], 2)
+        if (this.recordNode.length >= 2) {
+          this.change(this.recordNode[this.recordNode.length - 2], 0)
+        }
+        console.log('---执行“下一步”操作')
+        console.log(nextState.code)
+        console.log(nextState.info.highlightNodes)
+        this.change(nextState.info.highlightNodes, 1)
+        this.recordNode.push(nextState.info.highlightNodes)
+        this.activeFlag++
+      }
+    },
+    // 上一个状态
+    previous () {
+      /* if(this.activeFlag == 1)
+                {
+                    this.$message({
+                        type:'info',
+                        message:"已经是第一个状态了！"
+                    });
+                    return 0;
+                }
+                else if(this.activeFlag == 2){
+                    this.change(this.recordNode[this.activeFlag - 1], 0);
+                    this.change(this.recordNode[this.activeFlag - 2], 1);
+                }
+                this.change(this.recordNode[this.activeFlag - 3], 2);
+                this.activeFlag--; */
+    },
+    // 结束展示，恢复成最初状态
     end () {
       this.randomSeed = 0
       this.node = 0
@@ -415,13 +314,15 @@ export default {
       this.activeFlag = 0
       this.fresh()
     }
+  },
+
+  mounted () {
+    this.fresh()
   }
+
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
-span.mode999{
-  background-color:red;
-}
+<style scoped>
+
 </style>
