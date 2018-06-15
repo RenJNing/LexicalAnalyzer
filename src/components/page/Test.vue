@@ -47,7 +47,7 @@
 <script>
 import {DataSet, Network} from 'vis'
 import { Message } from 'element-ui'
-import {create_NFA} from '../../api/FNA'
+import {createNFA} from '../../api/NFA'
 
 export default {
   props: {
@@ -127,7 +127,7 @@ export default {
           // var myNFA = API(transitionTable, alphabet, acceptState2patternId)
           // myNFA.init()
           // myNFA.feedText(self.TokenForm.Token)
-          self.FNAMachine = create_NFA(this.array, this.alpha, this.acceptState)
+          self.FNAMachine = createNFA(this.array, this.alpha, this.acceptState)
           self.FNAMachine.init()
           self.FNAMachine.feedText(self.TokenForm.Token)
           // TODO：开始分词后 输入框不能编辑

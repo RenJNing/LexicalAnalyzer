@@ -1,45 +1,43 @@
 <template>
   <el-row>
     <el-row :gutter="20" style="text-align:center;" >
-        <el-col :span="8">
-            <el-button type="text" style="font-size: 46px;">NFA</el-button>
-        </el-col>
-        <el-col :span="8">
-            <el-button type="text" style="font-size: 46px;">DFA</el-button>
-        </el-col>
-        <el-col :span="8">
-            <el-button type="text" style="font-size: 46px;">DFA化简</el-button>
-        </el-col>
+      <el-col :span="8">
+        <el-button type="text" style="font-size: 46px;">NFA</el-button>
+      </el-col>
+      <el-col :span="8">
+        <el-button type="text" style="font-size: 46px;">DFA</el-button>
+      </el-col>
+      <el-col :span="8">
+        <el-button type="text" style="font-size: 46px;">DFA化简</el-button>
+      </el-col>
     </el-row>
     <el-row>
-        <el-col :span="24">
-           <div style="height: 400px; background-color:#DDDDDD;" :ref="this.myvis"></div>
-        </el-col>
+      <el-col :span="24">
+        <div style="height: 400px; background-color:#DDDDDD;" :ref="this.myvis"></div>
+      </el-col>
     </el-row>
     <el-row>
-        <el-col :span="24">
-            <!-- TODO: -->
-            <p style="" id="p" v-html="Token"></p>
-        </el-col>
+      <el-col :span="24">
+        <p id="p" v-html="Token"></p>
+      </el-col>
     </el-row>
     <el-row>
-        <el-col :span="11" :offset="1">
-            <p v-html="RE"></p>
-        </el-col>
-        <el-col :span="11">
-          <el-form ref="TokenForm" :rules="rules" :model="TokenForm" label-width="0px">
+      <el-col :span="11" :offset="1">
+        <p v-html="RE"></p>
+      </el-col>
+      <el-col :span="11">
+        <el-form ref="TokenForm" :rules="rules" :model="TokenForm" label-width="0px">
           <el-form-item prop="Token">
-          <el-input type="textarea" :autosize="{ minRows: 5, maxRows: 5}" v-model="TokenForm.Token"></el-input>
+            <el-input type="textarea" :autosize="{ minRows: 5, maxRows: 5}" v-model="TokenForm.Token"></el-input>
           </el-form-item>
           <el-button type="primary" @click="submitForm('TokenForm')">开始分词</el-button>
           <el-button>清空</el-button>
           <el-button @click="previous()">上一步</el-button>
           <el-button @click="next()">下一步</el-button>
-          <el-button @click="fitAnimated()">显示完整状态机</el-button>
-          <el-button @click="refresh()">重新生成</el-button>
-          <el-button @click="end()">结束</el-button>
-          </el-form>
-        </el-col>
+          <el-button @click="fitAnimated()">鹰眼</el-button>
+          <el-button @click="layoutChange()">{{layoutText}}</el-button>
+        </el-form>
+      </el-col>
     </el-row>
   </el-row>
 </template>
@@ -47,8 +45,7 @@
 <script>
 import {DataSet, Network} from 'vis'
 import { Message } from 'element-ui'
-import {create_NFA} from '../../api/FNA'
-import {data} from '../../api/data'
+import {createNFA} from '../../api/NFA'
 
 export default {
   props: {
@@ -59,16 +56,17 @@ export default {
   },
   data () {
     return {
-      array: data().transitionTable,
-
-      alpha: data().alphabet,
-      acceptState: data().acceptState2patternId,
-      randomSeed: 0,
-      recordNode: [],
-      recordEdge: [],
-      activeFlag: 0,
+      NFAdata: {
+        transitionTable: [],
+        alphabet: [],
+        acceptState: []
+      },
       FNAMachine: {},
-      Token: '',
+      lastState: null,
+      nextState: null,
+      layout: true,
+      layoutText: '取消层级结构',
+      Token: '<span>请点击开始分词<span>',
       RE: '',
       TokenForm: {
         Token: 'dododouble'
@@ -92,7 +90,8 @@ export default {
       return str1
     })()
     self.addCSS(self.getCsstext())
-    this.fresh()
+    self.NFAdata = JSON.parse(sessionStorage.getItem('NFAdata'))
+    this.fresh(self.NFAdata)
   },
   methods: {
     submitForm (formName) {
@@ -100,12 +99,10 @@ export default {
       self.$refs[formName].validate((valid) => {
         if (valid) {
           self.Token = self.TokenForm.Token
-          // var myNFA = API(transitionTable, alphabet, acceptState2patternId)
-          // myNFA.init()
-          // myNFA.feedText(self.TokenForm.Token)
-          self.FNAMachine = create_NFA(this.array, this.alpha, this.acceptState)
+          self.FNAMachine = createNFA(self.NFAdata.transitionTable, self.NFAdata.alphabet, self.NFAdata.acceptState)
           self.FNAMachine.init()
           self.FNAMachine.feedText(self.TokenForm.Token)
+          self.end()
           // TODO：开始分词后 输入框不能编辑
         } else {
           Message({
@@ -118,69 +115,90 @@ export default {
       })
     },
     next () {
-      let nextState = this.FNAMachine.nextStep()
-      if (nextState.code === 0) {
+      const self = this
+      self.lastState = self.nextState
+      self.nextState = self.FNAMachine.nextStep()
+      let recognized = self.nextState.windowInfo.recognizedTokens.map(obj => {
+        let temp = []
+        temp.push(obj.startIndex)
+        temp.push(obj.endIndex)
+        temp.push(obj.REId)
+        return temp
+      })
+      let remains = [self.nextState.windowInfo.remains.startIndex, self.nextState.windowInfo.remains.endIndex, 888]
+      let scanning = [self.nextState.windowInfo.scanning.startIndex, self.nextState.windowInfo.scanning.endIndex, 999]
+      recognized.push(scanning)
+      recognized.push(remains)
+      let html = self.cut(self.TokenForm.Token, recognized)
+      self.Token = html
+
+      if (self.nextState.code === 0) {
         this.$message({
           type: 'error',
           message: 'code==0 无法识别'
         })
-      } else if (nextState.code === 1) {
+      } else if (self.nextState.code === 1) {
         this.$message({
           type: 'success',
           message: 'code==1' + '匹配到正则表达式'
         })
-        this.change(this.recordNode[this.recordNode.length - 1], 2)
-        if (this.recordNode.length >= 2) {
-          this.change(this.recordNode[this.recordNode.length - 2], 0)
+        if (self.lastState.info.highlightEdges === null) {
+          this.changeNode(self.lastState.info.highlightNodes, 0)
+          this.changeNode(self.nextState.info.highlightNodes, 1)
+
+          this.changeEdge(self.nextState.info.highlightEdges, 1)
+        } else {
+          this.changeNode(self.lastState.info.highlightNodes, 0)
+          this.changeNode(self.nextState.info.highlightNodes, 1)
+
+          this.changeEdge(self.lastState.info.highlightEdges, 0)
+          this.changeEdge(self.nextState.info.highlightEdges, 1)
         }
-        this.change(nextState.info.highlightNodes, 1)
-        this.recordNode.push(nextState.info.highlightNodes)
-        this.activeFlag++
       } else {
-        this.change(this.recordNode[this.recordNode.length - 1], 2)
-        if (this.recordNode.length >= 2) {
-          this.change(this.recordNode[this.recordNode.length - 2], 0)
+        if (self.lastState.info.highlightEdges === null) {
+          this.changeNode(self.lastState.info.highlightNodes, 0)
+          this.changeNode(self.nextState.info.highlightNodes, 1)
+
+          this.changeEdge(self.nextState.info.highlightEdges, 1)
+        } else {
+          this.changeNode(self.lastState.info.highlightNodes, 0)
+          this.changeNode(self.nextState.info.highlightNodes, 1)
+
+          this.changeEdge(self.lastState.info.highlightEdges, 0)
+          this.changeEdge(self.nextState.info.highlightEdges, 1)
         }
-        this.change(nextState.info.highlightNodes, 1)
-        this.recordNode.push(nextState.info.highlightNodes)
-        this.activeFlag++
       }
-      const self = this
-      // let nextState = self.FNAMachine.nextStep()
-      console.log(nextState)
-      let recognized = nextState.windowInfo.recognizedTokens.map(obj => {
-        let temp = []
-        temp.push(obj.startIndex)
-        temp.push(obj.endIndex)
-        temp.push(obj.REId)
-        return temp
-      })
-      let remains = [nextState.windowInfo.remains.startIndex, nextState.windowInfo.remains.endIndex, 888]
-      let scanning = [nextState.windowInfo.scanning.startIndex, nextState.windowInfo.scanning.endIndex, 999]
-      recognized.push(scanning)
-      recognized.push(remains)
-      let html = self.cut(self.TokenForm.Token, recognized)
-      self.Token = html
     },
     previous () {
       const self = this
-      let data = self.FNAMachine.preStep()
-      console.log(data)
-      let recognized = data.windowInfo.recognizedTokens.map(obj => {
+      self.lastState = self.nextState
+      self.nextState = self.FNAMachine.preStep()
+      let recognized = self.nextState.windowInfo.recognizedTokens.map(obj => {
         let temp = []
         temp.push(obj.startIndex)
         temp.push(obj.endIndex)
         temp.push(obj.REId)
         return temp
       })
-      let remains = [data.windowInfo.remains.startIndex, data.windowInfo.remains.endIndex, 888]
-      let scanning = [data.windowInfo.scanning.startIndex, data.windowInfo.scanning.endIndex, 999]
+      let remains = [self.nextState.windowInfo.remains.startIndex, self.nextState.windowInfo.remains.endIndex, 888]
+      let scanning = [self.nextState.windowInfo.scanning.startIndex, self.nextState.windowInfo.scanning.endIndex, 999]
       recognized.push(scanning)
       recognized.push(remains)
       let html = self.cut(self.TokenForm.Token, recognized)
-      console.log(recognized)
-      console.log(html)
       self.Token = html
+
+      if (self.nextState.code === 11) {
+        this.$message({
+          type: 'info',
+          message: 'code==11 已经是第一个状态'
+        })
+      } else {
+        this.changeNode(self.lastState.info.highlightNodes, 0)
+        this.changeNode(self.nextState.info.highlightNodes, 1)
+
+        this.changeEdge(self.lastState.info.highlightEdges, 0)
+        this.changeEdge(self.nextState.info.highlightEdges, 1)
+      }
     },
     cut (str, arr) {
       let str1 = ''
@@ -209,140 +227,98 @@ export default {
       }
       return cssText
     },
-    myfunction1 (arr, alpha) {
-      var answer = []
-      for (let i = 0; i < arr.length; i++) {
-        for (let j = 0; j < arr[0].length; j++) {
-          if (arr[i][j] == null) {
-          } else {
-            var unit = arr[i][j].toString().split(',')
-            /* unit = unit.map(function(data){
-                                return +data;
-                            }); */
-            for (let k = 0; k < unit.length; k++) {
-              answer.push({
-                from: i, to: parseInt(unit[k]), arrows: 'to', label: alpha[j], color: {color: '#2b7ce9'}
-              })
-            }
+    createEdges (transitionTable, alphabet) {
+      var Edges = []
+      let _range = length => Array.from({ length }).map((v, k) => k)
+      for (var fState of _range(transitionTable.length)) {
+        for (var chIndex of _range(alphabet.length)) {
+          for (var tState of transitionTable[fState][chIndex]) {
+            Edges.push({id: Edges.length, from: fState, to: tState, arrows: 'to', label: alphabet[chIndex]})
           }
         }
       }
-      return answer
+      return Edges
     },
-    myfunction2 (arr) {
-      var answer = []
-      for (let i = 0; i < arr.length; i++) {
-        answer[i] = {
-          id: i, label: i.toString(), color: {background: ''}
+    createNodes (transitionTable, acceptState) {
+      var Nodes = []
+      for (let i = 0; i < transitionTable.length; i++) {
+        Nodes[i] = {
+          id: i, label: i.toString()
         }
       }
-      for (let i = 0; i < this.acceptState.length; i++) {
-        answer[this.acceptState[i].state].borderWidth = 5
+      for (let i = 0; i < acceptState.length; i++) {
+        Nodes[acceptState[i].state].borderWidth = 5
       }
-      return answer
+      return Nodes
     },
-    async fresh () {
-      this.edges = new DataSet(this.myfunction1(this.array, this.alpha))
-      this.nodes = new DataSet(this.myfunction2(this.array))
+    async fresh (networkdata) {
+      const self = this
+      self.edges = new DataSet(self.createEdges(networkdata.transitionTable, networkdata.alphabet))
+      self.nodes = new DataSet(self.createNodes(networkdata.transitionTable, networkdata.acceptState))
       var data = {
-        nodes: this.nodes,
-        edges: this.edges
+        nodes: self.nodes,
+        edges: self.edges
       }
-      this.$nextTick(
-        () => {
-          // console.log(this.myvis)
-          // console.log(this.$refs[this.myvis])
-          let container = this.$refs[this.myvis]
-          let options = {
-            nodes: {
-              color: {
-                background: 'white',
-                highlight: {
-                  border: 'rgba(139,183,233,1)',
-                  background: 'white'
-                }},
-              shape: 'dot',
-              size: 30,
-              font: {
-                size: 18
-              },
-              borderWidth: 1
-            },
-            edges: {
-              font: {
-                size: 35,
-                align: 'top'
-              }
-            },
-            autoResize: true,
-            height: '100%',
-            width: '100%',
-            clickToUse: true,
-
-            configure: {// 打开控制面板，可以调整有向图的参数
-              enabled: false,
-              filter: 'nodes,edges',
-              container: undefined,
-              showButton: true
-            },
-
-            layout: {
-              randomSeed: this.randomSeed,
-              hierarchical: {
-                enabled: false,
-                // parentCentralization: false,
-                direction: 'LR', // UD, DU, LR, RL
-                sortMethod: 'directed' // hubsize, directed
-              }
-            },
-            physics: {
-              enabled: true
-            }
-            // manipulation: {}
-
+      let container = this.$refs[this.myvis]
+      let options = {
+        nodes: {
+          color: {
+            background: 'white',
+            highlight: {
+              border: 'rgba(139,183,233,1)',
+              background: 'white'
+            }},
+          shape: 'dot',
+          size: 30,
+          font: {
+            size: 18
+          },
+          borderWidth: 1
+        },
+        edges: {
+          font: {
+            size: 35,
+            align: 'top'
           }
-          this.network = new Network(container, data, options)
+        },
+        autoResize: true,
+        height: '100%',
+        width: '100%',
+        clickToUse: true,
 
-          this.recordNode.push([0])
-          this.activeFlag++
-          this.change(this.recordNode[0], 1)
-          this.randomSeed++
+        // configure: {
+        //   enabled: false,
+        //   filter: 'nodes,edges',
+        //   container: undefined,
+        //   showButton: true
+        // },
+
+        layout: {
+          hierarchical: {
+            enabled: self.layout,
+            direction: 'LR', // UD, DU, LR, RL
+            sortMethod: 'directed' // hubsize, directed
+          }
+        },
+        physics: {
+          enabled: true
         }
-      )
-    },
-    refresh () {
-      this.end()
-      this.fresh()
+        // manipulation: {}
+
+      }
+      self.NFA = new Network(container, data, options)
     },
     fitAnimated () {
       var options = {
         duration: 1000,
         easingFunction: 'easeInOutQuad'
       }
-      this.network.fit({animation: options})
+      this.NFA.fit({animation: options})
     },
-    // 聚焦到...
-    focusNode (val) {
-      // this.updateValues();
-      /* var nodeId = Math.floor(Math.random() * amountOfNodes); */
-      var options = {
-        // position: {x:positionx,y:positiony}, // this is not relevant when focusing on nodes
-        scale: 1.5,
-        animation: {
-          duration: 1000,
-          easingFunction: 'easeInOutQuad'
-        }
-      }
-      /* statusUpdateSpan.innerHTML = 'Focusing on node: ' + nodeId;
-                finishMessage = 'Node: ' + nodeId + ' in focus.'; */
-      this.network.focus(val, options)
-    },
-    // 点击更改节点颜色并聚焦
-    // colorNum为0 置为初始状态；为1置为激活状态；为2置为濒死状态
-    change (nodes, colorNum) {
+    changeNode (nodes, colorNum) {
       let backgroud, border
       if (colorNum === 0) {
-        backgroud = '#D2E5FF'
+        backgroud = '#fff'
         border = '#2b7ce9'
       } else if (colorNum === 1) {
         backgroud = '#ffD2E5'
@@ -354,16 +330,36 @@ export default {
       for (let i = 0; i < nodes.length; i++) {
         this.nodes.update([{id: nodes[i], color: {background: backgroud, border: border}}])
       }
-
+    },
+    changeEdge (edges, colorNum) {
+      let backgroud, border
+      if (colorNum === 0) {
+        backgroud = '#ffffff'
+        border = '#2b7ce9'
+      } else if (colorNum === 1) {
+        backgroud = '#ffD2E5'
+        border = '#e92b7c'
+      } else {
+        backgroud = '#ffE5D2'
+        border = '#e97c2b'
+      }
+      for (let i = 0; i < edges.length; i++) {
+        this.edges.update([{id: edges[i].id, color: {color: border}}])
+      }
       // this.focusNode(nodes[0]);
     },
+    layoutChange () {
+      if (this.layout === true) {
+        this.layout = false
+        this.layoutText = '层级结构'
+      } else {
+        this.layout = true
+        this.layoutText = '取消层级结构'
+      }
+      this.fresh(this.NFAdata)
+    },
     end () {
-      this.randomSeed = 0
-      this.node = 0
-      this.recordNode = []
-      this.recordEdge = []
-      this.activeFlag = 0
-      this.fresh()
+      this.fresh(this.NFAdata)
     }
   }
 }

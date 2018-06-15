@@ -1,5 +1,5 @@
-export { create_NFA }
-function create_NFA(TB, A, state2pattern) {
+export { createNFA }
+function createNFA(TB, A, state2pattern) {
 	let _range = length => Array.from({ length }).map((v, k) => k);
 	var transitionTable = TB;
 	var alphabet = A;
