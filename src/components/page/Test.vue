@@ -1,44 +1,44 @@
 <template>
   <el-row>
-    <el-row :gutter="20">
+    <el-row :gutter="20" style="text-align:center;" >
         <el-col :span="8">
-            <el-button type="text">NFA</el-button>
+            <el-button type="text" style="font-size: 46px;">NFA</el-button>
         </el-col>
         <el-col :span="8">
-            <el-button type="text">DFA</el-button>
+            <el-button type="text" style="font-size: 46px;">DFA</el-button>
         </el-col>
         <el-col :span="8">
-            <el-button type="text">DFA化简</el-button>
+            <el-button type="text" style="font-size: 46px;">DFA化简</el-button>
         </el-col>
     </el-row>
     <el-row>
         <el-col :span="24">
-           <div style="height: 400px;width: 600px;" :ref="this.myvis"></div>
+           <div style="height: 400px; background-color:#DDDDDD;" :ref="this.myvis"></div>
         </el-col>
     </el-row>
     <el-row>
         <el-col :span="24">
             <!-- TODO: -->
-            <p style="font-size: 46px" id="p" v-html="Token"></p>
+            <p style="" id="p" v-html="Token"></p>
         </el-col>
     </el-row>
     <el-row>
-        <el-col :span="12">
+        <el-col :span="11" offset="1">
             <p v-html="RE"></p>
         </el-col>
-        <el-col :span="12">
-        <el-form ref="TokenForm" :rules="rules" :model="TokenForm" label-width="0px">
-        <el-form-item prop="Token">
-        <el-input type="textarea" :autosize="{ minRows: 5, maxRows: 5}" v-model="TokenForm.Token"></el-input>
-        </el-form-item>
-        <el-button type="primary" @click="submitForm('TokenForm')">开始分词</el-button>
-        <el-button>清空</el-button>
-        <el-button @click="previous()">上一步</el-button>
-        <el-button @click="next()">下一步</el-button>
-        <el-button @click="fitAnimated()">显示完整状态机</el-button>
-        <el-button @click="refresh()">重新生成</el-button>
-        <el-button @click="end()">结束</el-button>
-        </el-form>
+        <el-col :span="11">
+          <el-form ref="TokenForm" :rules="rules" :model="TokenForm" label-width="0px">
+          <el-form-item prop="Token">
+          <el-input type="textarea" :autosize="{ minRows: 5, maxRows: 5}" v-model="TokenForm.Token"></el-input>
+          </el-form-item>
+          <el-button type="primary" @click="submitForm('TokenForm')">开始分词</el-button>
+          <el-button>清空</el-button>
+          <el-button @click="previous()">上一步</el-button>
+          <el-button @click="next()">下一步</el-button>
+          <el-button @click="fitAnimated()">显示完整状态机</el-button>
+          <el-button @click="refresh()">重新生成</el-button>
+          <el-button @click="end()">结束</el-button>
+          </el-form>
         </el-col>
     </el-row>
   </el-row>
@@ -59,26 +59,32 @@ export default {
   data () {
     return {
       array: [
-        [[1, 4], [], [], [], [], [], []], // 0
-        [[], [], [2], [], [], [], []], // 1
-        [[], [], [], [], [], [3], []], // 2
-        [[], [], [], [], [], [], []], // 3
-        [[], [], [5], [], [], [], []], // 4
-        [[], [], [], [], [], [6], []], // 5
-        [[], [], [], [], [], [], [7]], // 6
-        [[], [8], [], [], [], [], []], // 7
-        [[], [], [], [], [9], [], []], // 8
-        [[], [], [], [10], [], [], []], // 9
-        [[], [], [], [], [], [], []] // 10
-      ],
-      alpha: ['ε', 'b', 'd', 'e', 'l', 'o', 'u'],
+        [[1, 5], [], [], [], [], [], []],
+        [[], [2], [], [], [], [], []],
+        [[3], [], [], [], [], [], []],
+        [[], [], [4], [], [], [], []],
+        [[], [], [], [], [], [], []],
+        [[], [6], [], [], [], [], []],
+        [[7], [], [], [], [], [], []],
+        [[], [], [8], [], [], [], []],
+        [[9], [], [], [], [], [], []],
+        [[], [], [], [10], [], [], []],
+        [[11], [], [], [], [], [], []],
+        [[], [], [], [], [12], [], []],
+        [[13], [], [], [], [], [], []],
+        [[], [], [], [], [], [14], []],
+        [[15], [], [], [], [], [], []],
+        [[], [], [], [], [], [], [16]],
+        [[], [], [], [], [], [], []]],
+
+      alpha: ['ε', 'd', 'o', 'u', 'b', 'l', 'e'],
       acceptState: [
         {
-          state: 3,
-          REId: 0
-        }, {
-          state: 10,
+          state: 4,
           REId: 1
+        }, {
+          state: 16,
+          REId: 2
         }
       ],
       randomSeed: 0,
@@ -148,22 +154,22 @@ export default {
           message: 'code==1 o(╯□╰)o' +
                             '匹配到正则表达式'
         })
-        this.change(this.recordNode[this.recordNode.length - 1], 2)
-        if (this.recordNode.length >= 2) {
-          this.change(this.recordNode[this.recordNode.length - 2], 0)
+        for (let i of nextState.info.highlightNodes) {
+          this.nodes.update([{id: i, color: {background: 'black', border: 'black'}}])
         }
-        this.change(nextState.info.highlightNodes, 1)
-        this.recordNode.push(nextState.info.highlightNodes)
-        this.activeFlag++
+        for (let i of nextState.info.highlightEdges) {
+          this.edges.update([{id: i.id, color: {color: 'black'}}])
+        }
       } else {
-        this.change(this.recordNode[this.recordNode.length - 1], 2)
-        if (this.recordNode.length >= 2) {
-          this.change(this.recordNode[this.recordNode.length - 2], 0)
+        for (let i of nextState.info.highlightNodes) {
+          this.nodes.update([{id: i, color: {background: 'black', border: 'black'}}])
         }
-        this.change(nextState.info.highlightNodes, 1)
-        this.recordNode.push(nextState.info.highlightNodes)
-        this.activeFlag++
+        for (let i of nextState.info.highlightEdges) {
+          console.log(i)
+          this.edges.update([{id: i.id, color: {color: 'black'}}])
+        }
       }
+
       const self = this
       // let nextState = self.FNAMachine.nextStep()
       console.log(nextState)
@@ -230,19 +236,28 @@ export default {
     },
     myfunction1 (arr, alpha) {
       var answer = []
-      for (let i = 0; i < arr.length; i++) {
-        for (let j = 0; j < arr[0].length; j++) {
-          if (arr[i][j] == null) {
-          } else {
-            var unit = arr[i][j].toString().split(',')
-            /* unit = unit.map(function(data){
-                                return +data;
-                            }); */
-            for (let k = 0; k < unit.length; k++) {
-              answer.push({
-                from: i, to: parseInt(unit[k]), arrows: 'to', label: alpha[j], color: {color: '#2b7ce9'}
-              })
-            }
+      let _range = length => Array.from({ length }).map((v, k) => k)
+      // var count = 0
+      // for (let i = 0; i < arr.length; i++) {
+      //   for (let j = 0; j < arr[0].length; j++) {
+      //     if (arr[i][j] == null) {
+      //     } else {
+      //       var unit = arr[i][j].toString().split(',')
+      //       /* unit = unit.map(function(data){
+      //                           return +data;
+      //                       }); */
+      //       for (let k = 0; k < unit.length; k++) {
+      //         answer.push({
+      //           id: count++, from: i, to: parseInt(unit[k]), arrows: 'to', label: alpha[j], color: {color: 'green'}
+      //         })
+      //       }
+      //     }
+      //   }
+      // }
+      for (var f_state of _range(arr.length)) {
+        for (var ch_index of _range(alpha.length)) {
+          for (var t_state of arr[f_state][ch_index]) {
+            answer.push({id: answer.length, from: f_state, to: t_state, arrows: 'to', label: alpha[ch_index]})
           }
         }
       }
@@ -273,6 +288,29 @@ export default {
           // console.log(this.$refs[this.myvis])
           let container = this.$refs[this.myvis]
           let options = {
+            nodes: {
+              color: {
+                background: 'white',
+                highlight: {
+                  border: 'rgba(139,183,233,1)',
+                  background: 'white'
+                }},
+              shape: 'dot',
+              size: 30,
+              font: {
+                size: 18
+              },
+              borderWidth: 1
+            },
+            edges: {
+              color: {
+                color: 'green'
+              },
+              font: {
+                size: 65,
+                align: 'top'
+              }
+            },
             autoResize: true,
             height: '100%',
             width: '100%',
@@ -288,7 +326,7 @@ export default {
             layout: {
               randomSeed: this.randomSeed,
               hierarchical: {
-                enabled: false,
+                enabled: true,
                 // parentCentralization: false,
                 direction: 'LR', // UD, DU, LR, RL
                 sortMethod: 'directed' // hubsize, directed
@@ -306,47 +344,6 @@ export default {
           this.activeFlag++
           this.change(this.recordNode[0], 1)
           this.randomSeed++
-          // let all_movie = this.movie_list.concat(this.movie)
-          // console.log('all', all_movie, typeof all_movie)
-
-          // 重新渲染后需要重新添加事件
-          /* network.on("click", (params) => {
-                             params.event = "[original event]";
-                             console.log(params)
-                             // nodes 为空表示点击的是边
-
-                             // console.log('单击的节点id为', params.nodes)
-
-                             if (params.nodes.length > 0) {
-                                 let click_node_id = params.nodes[0]
-                                 let m = all_movie.find((val, index) => {
-                                     // console.log(val, index)
-                                     return val['id'] == click_node_id
-                                 })
-                                 this.$emit('node_click', m)
-                             }
-
-                             // document.getElementById('eventSpan').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
-
-                             // console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
-                         });
-
-                         network.on("doubleClick", (params) => {
-                             params.event = "[original event]";
-                             // document.getElementById('eventSpan').innerHTML = '<h2>doubleClick event:</h2>' + JSON.stringify(params, null, 4);
-                             // console.log(params)
-                             // nodes 为空表示点击的是边
-                             // console.log('双击的节点id为', params.nodes)
-
-                             if (params.nodes.length > 0) {
-                                 let click_node_id = params.nodes[0]
-                                 // let m = all_movie.find((val, index) => {
-                                 //   console.log(val, index)
-                                 //   return val['id'] == click_node_id
-                                 // })
-                                 this.$emit('node_double_click', click_node_id)
-                             }
-                         }); */
         }
       )
     },
@@ -361,17 +358,7 @@ export default {
       }
       this.network.fit({animation: options})
     },
-    // 更新数值
-    /* updateValues() {
-                offsetx = parseInt(document.getElementById('offsetx').value);
-                offsety = parseInt(document.getElementById('offsety').value);
-                duration = parseInt(document.getElementById('duration').value);
-                scale = parseFloat(document.getElementById('scale').value);
-                positionx = parseInt(document.getElementById('positionx').value);
-                positiony = parseInt(document.getElementById('positiony').value);
-                easingFunction = document.getElementById('easingFunction').value;
-            }, */
-    // 聚焦到...
+
     focusNode (val) {
       // this.updateValues();
       /* var nodeId = Math.floor(Math.random() * amountOfNodes); */
@@ -421,6 +408,11 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
+#p{
+  font-size: 46px;
+  text-align:center;
+  word-wrap:break-word;
+}
 span.mode999{
   background-color:red;
 }

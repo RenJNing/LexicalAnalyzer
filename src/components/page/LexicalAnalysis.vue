@@ -208,6 +208,26 @@ export default {
           // console.log(this.$refs[this.myvis])
           let container = this.$refs[this.myvis]
           let options = {
+            nodes: {
+              color: {
+                background: 'white',
+                highlight: {
+                  border: 'rgba(139,183,233,1)',
+                  background: 'white'
+                }},
+              shape: 'dot',
+              size: 30,
+              font: {
+                size: 18
+              },
+              borderWidth: 1
+            },
+            edges: {
+              font: {
+                size: 35,
+                align: 'top'
+              }
+            },
             autoResize: true,
             height: '100%',
             width: '100%',
@@ -223,7 +243,7 @@ export default {
             layout: {
               randomSeed: this.randomSeed,
               hierarchical: {
-                enabled: false,
+                enabled: true,
                 // parentCentralization: false,
                 direction: 'LR', // UD, DU, LR, RL
                 sortMethod: 'directed' // hubsize, directed
@@ -292,7 +312,7 @@ div#NFA,div#DFA,div#DFA_S{
 }
 div#NFA.active,div#DFA.active,div#DFA_S.active{
 height:auto;
-margin-left:-50%;
+margin-left:-55%;
 background-color:rgba(221,221,221,0.3)
 }
 </style>

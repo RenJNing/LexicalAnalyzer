@@ -1,5 +1,5 @@
-export {create_NFA} 
-function create_NFA(TB, A, state2pattern){
+export { create_NFA }
+function create_NFA(TB, A, state2pattern) {
 	let _range = length => Array.from({ length }).map((v, k) => k);
 	var transitionTable = TB;
 	var alphabet = A;
@@ -15,7 +15,7 @@ function create_NFA(TB, A, state2pattern){
 	for (var f_state of _range(transitionTable.length)) {
 		for (var ch_index of _range(alphabet.length)) {
 			for (var t_state of transitionTable[f_state][ch_index]) {
-				NFAStatesTransition.push({ from: f_state, to: t_state, arrows: 'to', label: alphabet[ch_index] });
+				NFAStatesTransition.push({id:NFAStatesTransition.length, from: f_state, to: t_state, arrows: 'to', label: alphabet[ch_index] });
 			}
 		}
 	}
@@ -67,6 +67,7 @@ function create_NFA(TB, A, state2pattern){
 			// CODE = 2 时候返回：可视化信息
 			// CODE = 3 时候返回：用户输入的文本已经完成Token提取
 			// CODE = 5 时候返回：可视化信息, 表示因为用户输入流已经到结尾，被迫进行Token提取，区别于 CODE = 1 的主动Token提取
+			// CODE = 6 遇到字符表不存在的字符。
 			var CODE = 0;
 
 			// 状态机内部的 scanEndIndex 已经达到用户输入的文本的尾巴
@@ -86,9 +87,10 @@ function create_NFA(TB, A, state2pattern){
 					// end > start, harh of the string, need to accept some and continue, if cant accept, then fail
 					if (acceptedStates.length === 0) {
 						CODE = 0;
-						console.log(`fail to recognize at: ${scanStartIndex+1}`);
+						console.log(`fail to recognize at: ${scanStartIndex + 1}`);
 						var resp = {
-							code: CODE
+							code: CODE,
+							message: `fail to recognize at: ${scanStartIndex + 1}`
 						};
 						return resp;
 					} else {
@@ -121,7 +123,7 @@ function create_NFA(TB, A, state2pattern){
 						if (historialWindowInfos.length === 0) {
 							recognizedTokens = [];
 						} else {
-							recognizedTokens = historialWindowInfos[historialWindowInfos.length - 1].recognizedTokens;
+							recognizedTokens = historialWindowInfos[historialWindowInfos.length - 1].recognizedTokens.slice();
 						}
 						recognizedTokens.push({
 							startIndex: scanStartIndex + 1,
@@ -180,12 +182,16 @@ function create_NFA(TB, A, state2pattern){
 			}
 
 			// 处理 Epsilon 变迁
+			// 如果 alphabet 里面没有 ε 或 Epsilon，就直接 isEpsilon = false
 			// 如果 当前状态集合 currentStates 里存在着 1个或多个状态可以进行 currentStates 变迁。
 			//      则把 nextChar设置为 ε 或 Epsilon， 并且不用更新扫描窗口的 index： scanStartIndex 和 scanEndIndex
 			// 否则， 继续读取用户输入的流中的下一个字符，并且更新窗口信息
 			var isEpsilon = false;
 			for (var s of currentStates) {
 				var epsilonIndex = alphabet.indexOf('ε');
+				if (epsilonIndex === -1) {
+					break;
+				}
 				var f_state = s.stateId;
 				var states = transitionTable[f_state][epsilonIndex];
 				if (states.length != 0) {
@@ -207,6 +213,16 @@ function create_NFA(TB, A, state2pattern){
 				nextChar = text[nextScanEndIndex];
 				nextCharIndex = alphabet.indexOf(nextChar);
 
+				// 如果当前遇到的字符不在 alphabet 中，反馈给用户
+				if (nextCharIndex === -1) {
+					CODE = 6;
+					console.log(`unknown char at: ${scanStartIndex + 1}`);
+					var resp = {
+						code: CODE,
+						message: `unknown char at: ${scanStartIndex + 1}`
+					};
+					return resp;
+				}
 			}
 			//scanning = {startIndex:scanStartIndex+1, endIndex: scanEndIndex+1};
 			//remains = {startIndex:scanEndIndex+2, endIndex: text.length-1};
@@ -230,7 +246,14 @@ function create_NFA(TB, A, state2pattern){
 					var offset = nextScanEndIndex - scanStartIndex;
 					for (var t_state of states) {
 						highlightNodes.push(t_state);
-						highlightEdges.push({ from: f_state, to: t_state });
+						var edgeId;
+						for(var e of NFAStatesTransition){
+							if(e.from===f_state&&e.to===t_state){
+								edgeId = e.id;
+								break;
+							}
+						}
+						highlightEdges.push({ id:edgeId, from: f_state, to: t_state });
 						if (NFAAcceptStates.indexOf(t_state) === -1) {
 							// ss 存在而且不是接受态，压入新的 nextStates
 							nextStates.push({ stateId: t_state, fromId: f_state });
@@ -285,7 +308,7 @@ function create_NFA(TB, A, state2pattern){
 					if (historialWindowInfos.length === 0) {
 						recognizedTokens = [];
 					} else {
-						recognizedTokens = historialWindowInfos[historialWindowInfos.length - 1].recognizedTokens;
+						recognizedTokens = historialWindowInfos[historialWindowInfos.length - 1].recognizedTokens.slice();
 					}
 					recognizedTokens.push({
 						startIndex: scanStartIndex + 1,
@@ -343,7 +366,7 @@ function create_NFA(TB, A, state2pattern){
 				if (historialWindowInfos.length === 0) {
 					recognizedTokens = [];
 				} else {
-					recognizedTokens = historialWindowInfos[historialWindowInfos.length - 1].recognizedTokens;
+					recognizedTokens = historialWindowInfos[historialWindowInfos.length - 1].recognizedTokens.slice();
 				}
 				if (isEpsilon === false) {
 					// 扫描的窗口右移一位
@@ -386,7 +409,7 @@ function create_NFA(TB, A, state2pattern){
 			var resp;
 			if (CODE === 0) {
 				// 返回错误
-				console.log(`fail to recognize at: ${scanStartIndex+1}`);
+				console.log(`fail to recognize at: ${scanStartIndex + 1}`);
 				resp = {
 					code: CODE
 				};
@@ -410,32 +433,51 @@ function create_NFA(TB, A, state2pattern){
 			}
 		},
 		preStep: function () {
-			console.log("--------------- ");
-			var CODE = 10;
-			if(historialStates.length===0){
-				CODE = 11;
-				return{
+			console.log("--- ");
+			if (historialStates.length === 0) {
+				var CODE = 11;
+				return {
 					code: CODE
 				};
-			}
-			historialStates.pop();
-			historialVisualInfos.pop();
-			historialWindowInfos.pop();
-			scanStartIndex = historialStates[historialStates.length-1].scanStartIndex;
-			scanEndIndex = historialStates[historialStates.length-1].scanEndIndex;
-			currentStates = historialStates[historialStates.length-1].currentStates;
-			acceptedStates = historialStates[historialStates.length-1].acceptedStates;
+			} else if (historialStates.length === 1) {
+				// 用户第一次按下一步之后就按上一步
+				historialStates.pop();
+				historialVisualInfos.pop();
+				historialWindowInfos.pop();
+				this.init();
 
-			var resp = {
-				code: CODE,
-				info: historialVisualInfos[historialVisualInfos.length - 1],
-				windowInfo: historialWindowInfos[historialWindowInfos.length - 1]
-			};
-			return resp;
+				var CODE = 10;
+				var resp = {
+					code: CODE,
+					info: {
+						highlightEdges: [],
+						highlightNodes: [0]
+					},
+					windowInfo: {
+						recognizedTokens: [],
+						scanning: { startIndex: -1, endIndex: -1 },
+						remains: { startIndex: 0, endIndex: text.length - 1 }
+					}
+				};
+				return resp;
+			} else {
+				historialStates.pop();
+				historialVisualInfos.pop();
+				historialWindowInfos.pop();
+				scanStartIndex = historialStates[historialStates.length - 1].scanStartIndex;
+				scanEndIndex = historialStates[historialStates.length - 1].scanEndIndex;
+				currentStates = historialStates[historialStates.length - 1].currentStates;
+				acceptedStates = historialStates[historialStates.length - 1].acceptedStates;
+
+				var CODE = 10;
+				var resp = {
+					code: CODE,
+					info: historialVisualInfos[historialVisualInfos.length - 1],
+					windowInfo: historialWindowInfos[historialWindowInfos.length - 1]
+				};
+				return resp;
+			}
 		}
 
 	} // end return
-}
-
-
-
+};
