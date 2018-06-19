@@ -45,7 +45,7 @@
 <script>
 import {DataSet, Network} from 'vis'
 import { Message } from 'element-ui'
-import {create_NFA,CODE} from '../../api/NFA'
+import {create_NFA, CODE} from '../../api/NFA'
 import {createNodes, createEdges} from '../../api/vis_api'
 
 export default {
@@ -134,46 +134,46 @@ export default {
       recognized.push(remains)
       let html = self.cut(self.TokenForm.Token, recognized)
       self.Token = html
-      switch(self.nextState.code){
-          case CODE.DONE:
-            self.$message({
+      switch (self.nextState.code) {
+        case CODE.DONE:
+          self.$message({
             type: 'success',
             message: 'Token提取完成'
-            });
-            break;
-          case CODE.DOCLOSURE:
-                      self.$message({
+          })
+          break
+        case CODE.DOCLOSURE:
+          self.$message({
             type: 'success',
             message: '遵循最长子串原则继续重复做闭包和读字符'
-            });
-            break;
-          case CODE.READCHAR:
-                      self.$message({
+          })
+          break
+        case CODE.READCHAR:
+          self.$message({
             type: 'info',
             message: '遵循最长子串原则继续重复做闭包和读字符'
-            });
-            break;
-          case CODE.ACCEPT:
-                      self.$message({
+          })
+          break
+        case CODE.ACCEPT:
+          self.$message({
             type: 'success',
             message: '提取Token'
-            });
-            break;
-          case CODE.REJECT:
-                      self.$message({
+          })
+          break
+        case CODE.REJECT:
+          self.$message({
             type: 'success',
             message: '遇到了NFA拒绝的输入'
-            });
-            break;
-          case CODE.UNKNOWN:
-                      self.$message({
+          })
+          break
+        case CODE.UNKNOWN:
+          self.$message({
             type: 'success',
             message: '遇到了NFA遇到了不认识的字符'
-            });
-            break;
-          default:
-            break;
-        }
+          })
+          break
+        default:
+          break
+      }
       //   if (self.nextState.code === CODE.DONE) {
       //   this.$message({
       //     type: 'success',

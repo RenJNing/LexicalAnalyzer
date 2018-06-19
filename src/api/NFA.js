@@ -265,17 +265,11 @@ function create_NFA(TB, A, state2pattern){
             };
             break;
           case CODE.DOCLOSURE:
-            let originalNodes = historials[historials.length-1].currentStates.slice();
-            let closureNodes = currentStates.slice();
-            closureNodes = originalNodes.forEach(e=>{
-              closureNodes.splice(closureNodes.indexOf(e), 1);
-            })
             resp = {
               code:CODE.DOCLOSURE,
               graphInfo:{
-                originalNodes:originalNodes,
-                closureNodes:closureNodes,
-                transitionNodes:[]
+                highlightNodes:currentStates.slice(),
+                highlightEdges:[]
               },
               windowInfo:{
                 recognizedTokens:recognizedTokens,
@@ -294,9 +288,8 @@ function create_NFA(TB, A, state2pattern){
             resp = {
               code:CODE.READCHAR,
               graphInfo:{
-                originalNodes:historials[historials.length-1].currentStates.slice(),
-                closureNodes:[],
-                transitionNodes:currentStates
+                highlightNodes:currentStates.slice(),
+                highlightEdges:[]
               },
               windowInfo:{
                 recognizedTokens:recognizedTokens,
@@ -315,7 +308,8 @@ function create_NFA(TB, A, state2pattern){
             resp = {
               code:CODE.ACCEPT,
               graphInfo:{
-
+                highlightNodes:currentStates.slice(),
+                highlightEdges:[]
               },
               windowInfo:{
                 recognizedTokens:recognizedTokens,
@@ -360,7 +354,5 @@ function create_NFA(TB, A, state2pattern){
         }
         return resp;
       }
-      
-
     }// end return
 }
