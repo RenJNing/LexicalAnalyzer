@@ -45,7 +45,8 @@
 <script>
 import {DataSet, Network} from 'vis'
 import { Message } from 'element-ui'
-import {createNFA} from '../../api/NFA'
+import {create_NFA,CODE} from '../../api/NFA'
+import {createNodes, createEdges} from '../../api/vis_api'
 
 export default {
   props: {
@@ -99,10 +100,12 @@ export default {
       self.$refs[formName].validate((valid) => {
         if (valid) {
           self.Token = self.TokenForm.Token
-          self.FNAMachine = createNFA(self.NFAdata.transitionTable, self.NFAdata.alphabet, self.NFAdata.acceptState)
+          self.FNAMachine = create_NFA(self.NFAdata.transitionTable, self.NFAdata.alphabet, self.NFAdata.acceptState)
           self.FNAMachine.init()
           self.FNAMachine.feedText(self.TokenForm.Token)
-          self.end()
+          self.fresh(self.NFAdata)
+          self.changeNode([0], 1)
+          self.nextState = {info: {highlightNodes: [0]}}
           // TODO：开始分词后 输入框不能编辑
         } else {
           Message({
@@ -131,43 +134,82 @@ export default {
       recognized.push(remains)
       let html = self.cut(self.TokenForm.Token, recognized)
       self.Token = html
-
-      if (self.nextState.code === 0) {
-        this.$message({
-          type: 'error',
-          message: 'code==0 无法识别'
-        })
-      } else if (self.nextState.code === 1) {
-        this.$message({
-          type: 'success',
-          message: 'code==1' + '匹配到正则表达式'
-        })
-        if (self.lastState.info.highlightEdges === null) {
-          this.changeNode(self.lastState.info.highlightNodes, 0)
-          this.changeNode(self.nextState.info.highlightNodes, 1)
-
-          this.changeEdge(self.nextState.info.highlightEdges, 1)
-        } else {
-          this.changeNode(self.lastState.info.highlightNodes, 0)
-          this.changeNode(self.nextState.info.highlightNodes, 1)
-
-          this.changeEdge(self.lastState.info.highlightEdges, 0)
-          this.changeEdge(self.nextState.info.highlightEdges, 1)
+      switch(self.nextState.code){
+          case CODE.DONE:
+            self.$message({
+            type: 'success',
+            message: 'Token提取完成'
+            });
+            break;
+          case CODE.DOCLOSURE:
+                      self.$message({
+            type: 'success',
+            message: '遵循最长子串原则继续重复做闭包和读字符'
+            });
+            break;
+          case CODE.READCHAR:
+                      self.$message({
+            type: 'info',
+            message: '遵循最长子串原则继续重复做闭包和读字符'
+            });
+            break;
+          case CODE.ACCEPT:
+                      self.$message({
+            type: 'success',
+            message: '提取Token'
+            });
+            break;
+          case CODE.REJECT:
+                      self.$message({
+            type: 'success',
+            message: '遇到了NFA拒绝的输入'
+            });
+            break;
+          case CODE.UNKNOWN:
+                      self.$message({
+            type: 'success',
+            message: '遇到了NFA遇到了不认识的字符'
+            });
+            break;
+          default:
+            break;
         }
-      } else {
-        if (self.lastState.info.highlightEdges === null) {
-          this.changeNode(self.lastState.info.highlightNodes, 0)
-          this.changeNode(self.nextState.info.highlightNodes, 1)
+      //   if (self.nextState.code === CODE.DONE) {
+      //   this.$message({
+      //     type: 'success',
+      //     message: 'Token提取完成'
+      //   })
+      // } else if (self.nextState.code === 1) {
+      //   this.$message({
+      //     type: 'success',
+      //     message: 'code==1' + '匹配到正则表达式'
+      //   })
+      //   if (self.lastState === null || self.lastState.info.highlightEdges === null) {
+      //     this.changeNode(self.lastState.info.highlightNodes, 0)
+      //     this.changeNode(self.nextState.info.highlightNodes, 1)
 
-          this.changeEdge(self.nextState.info.highlightEdges, 1)
-        } else {
-          this.changeNode(self.lastState.info.highlightNodes, 0)
-          this.changeNode(self.nextState.info.highlightNodes, 1)
+      //     this.changeEdge(self.nextState.info.highlightEdges, 1)
+      //   } else {
+      //     this.changeNode(self.lastState.info.highlightNodes, 0)
+      //     this.changeNode(self.nextState.info.highlightNodes, 1)
 
-          this.changeEdge(self.lastState.info.highlightEdges, 0)
-          this.changeEdge(self.nextState.info.highlightEdges, 1)
-        }
-      }
+      //     this.changeEdge(self.lastState.info.highlightEdges, 0)
+      //     this.changeEdge(self.nextState.info.highlightEdges, 1)
+      //   }
+      // } else {
+      //   if (self.lastState === null || self.lastState.info.highlightEdges === null) {
+      //     this.changeNode(self.lastState.info.highlightNodes, 0)
+      //     this.changeNode(self.nextState.info.highlightNodes, 1)
+
+      //     this.changeEdge(self.nextState.info.highlightEdges, 1)
+      //   } else {
+      //     this.changeNode(self.lastState.info.highlightNodes, 0)
+      //     this.changeNode(self.nextState.info.highlightNodes, 1)
+
+      //     this.changeEdge(self.lastState.info.highlightEdges, 0)
+      //     this.changeEdge(self.nextState.info.highlightEdges, 1)
+      //   }
+      // }
     },
     previous () {
       const self = this
@@ -204,9 +246,9 @@ export default {
       let str1 = ''
       for (let i of arr) {
         if (i[2] < 888) {
-          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], (i[1] + 1)) + '&nbsp;' + '</span>'
+          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], i[1]) + '&nbsp;' + '</span>'
         } else {
-          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], (i[1] + 1)) + '</span>'
+          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], i[1]) + '</span>'
         }
       }
       return str1
@@ -227,34 +269,10 @@ export default {
       }
       return cssText
     },
-    createEdges (transitionTable, alphabet) {
-      var Edges = []
-      let _range = length => Array.from({ length }).map((v, k) => k)
-      for (var fState of _range(transitionTable.length)) {
-        for (var chIndex of _range(alphabet.length)) {
-          for (var tState of transitionTable[fState][chIndex]) {
-            Edges.push({id: Edges.length, from: fState, to: tState, arrows: 'to', label: alphabet[chIndex]})
-          }
-        }
-      }
-      return Edges
-    },
-    createNodes (transitionTable, acceptState) {
-      var Nodes = []
-      for (let i = 0; i < transitionTable.length; i++) {
-        Nodes[i] = {
-          id: i, label: i.toString()
-        }
-      }
-      for (let i = 0; i < acceptState.length; i++) {
-        Nodes[acceptState[i].state].borderWidth = 5
-      }
-      return Nodes
-    },
     async fresh (networkdata) {
       const self = this
-      self.edges = new DataSet(self.createEdges(networkdata.transitionTable, networkdata.alphabet))
-      self.nodes = new DataSet(self.createNodes(networkdata.transitionTable, networkdata.acceptState))
+      self.edges = new DataSet(createEdges(networkdata.transitionTable, networkdata.alphabet))
+      self.nodes = new DataSet(createNodes(networkdata.transitionTable, networkdata.acceptState))
       var data = {
         nodes: self.nodes,
         edges: self.edges
@@ -316,37 +334,30 @@ export default {
       this.NFA.fit({animation: options})
     },
     changeNode (nodes, colorNum) {
-      let backgroud, border
+      let backgroud
       if (colorNum === 0) {
         backgroud = '#fff'
-        border = '#2b7ce9'
       } else if (colorNum === 1) {
         backgroud = '#ffD2E5'
-        border = '#e92b7c'
       } else {
         backgroud = '#ffE5D2'
-        border = '#e97c2b'
       }
       for (let i = 0; i < nodes.length; i++) {
-        this.nodes.update([{id: nodes[i], color: {background: backgroud, border: border}}])
+        this.nodes.update([{id: nodes[i], color: {background: backgroud}}])
       }
     },
     changeEdge (edges, colorNum) {
-      let backgroud, border
+      let border
       if (colorNum === 0) {
-        backgroud = '#ffffff'
         border = '#2b7ce9'
       } else if (colorNum === 1) {
-        backgroud = '#ffD2E5'
         border = '#e92b7c'
       } else {
-        backgroud = '#ffE5D2'
         border = '#e97c2b'
       }
       for (let i = 0; i < edges.length; i++) {
         this.edges.update([{id: edges[i].id, color: {color: border}}])
       }
-      // this.focusNode(nodes[0]);
     },
     layoutChange () {
       if (this.layout === true) {
@@ -356,9 +367,6 @@ export default {
         this.layout = true
         this.layoutText = '取消层级结构'
       }
-      this.fresh(this.NFAdata)
-    },
-    end () {
       this.fresh(this.NFAdata)
     }
   }

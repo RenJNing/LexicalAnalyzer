@@ -7,7 +7,7 @@ export default new Router({
   routes: [
     {
       path: '/',
-      redirect: '/index'
+      redirect: '/index/lexicalanalysis'
     },
     {
       path: '/index/lexicalanalysis',
@@ -18,8 +18,8 @@ export default new Router({
       component: resolve => require(['../components/page/Test.vue'], resolve)
     },
     {
-      path: '/index/Token',
-      component: resolve => require(['../components/page/Token.vue'], resolve)
+      path: '/index/nfatoken',
+      component: resolve => require(['../components/page/NFAToken.vue'], resolve)
     }
   ]
 })

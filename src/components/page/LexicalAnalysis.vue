@@ -13,7 +13,7 @@
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="submitForm('REForm')" :loading="loading">构建状态机</el-button>
-              <el-button type="primary" :disabled="disable" @click="goto('/index/Token')">Token模拟提取</el-button>
+              <el-button type="primary" :disabled="disable" @click="goto('/index/nfatoken')">Token模拟提取</el-button>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" :disabled="disable">收藏</el-button>
@@ -53,6 +53,7 @@
 <script>
 import {DataSet, Network} from 'vis'
 import { Message } from 'element-ui'
+import {createNodes, createEdges} from '../../api/vis_api'
 export default {
   data () {
     // 验证正则表达式是否合法
@@ -121,26 +122,9 @@ export default {
           self.disable = false
           sessionStorage.setItem('input', self.REForm.RE)
           self.NFAdata = {
-            transitionTable: [
-              [[1, 5], [], [], [], [], [], []],
-              [[], [2], [], [], [], [], []],
-              [[3], [], [], [], [], [], []],
-              [[], [], [4], [], [], [], []],
-              [[], [], [], [], [], [], []],
-              [[], [6], [], [], [], [], []],
-              [[7], [], [], [], [], [], []],
-              [[], [], [8], [], [], [], []],
-              [[9], [], [], [], [], [], []],
-              [[], [], [], [10], [], [], []],
-              [[11], [], [], [], [], [], []],
-              [[], [], [], [], [12], [], []],
-              [[13], [], [], [], [], [], []],
-              [[], [], [], [], [], [14], []],
-              [[15], [], [], [], [], [], []],
-              [[], [], [], [], [], [], [16]],
-              [[], [], [], [], [], [], []]],
-            alphabet: ['ε', 'd', 'o', 'u', 'b', 'l', 'e'],
-            acceptState: [{state: 4, REId: 1}, {state: 16, REId: 2}]
+            transitionTable: [],
+            alphabet: [],
+            acceptState: []
           }
           self.DFAdata = {
             transitionTable: [
@@ -242,34 +226,10 @@ export default {
     goto (url) {
       this.$router.push(url)
     },
-    createEdges (transitionTable, alphabet) {
-      var Edges = []
-      let _range = length => Array.from({ length }).map((v, k) => k)
-      for (var fState of _range(transitionTable.length)) {
-        for (var chIndex of _range(alphabet.length)) {
-          for (var tState of transitionTable[fState][chIndex]) {
-            Edges.push({id: Edges.length, from: fState, to: tState, arrows: 'to', label: alphabet[chIndex]})
-          }
-        }
-      }
-      return Edges
-    },
-    createNodes (transitionTable, acceptState) {
-      var Nodes = []
-      for (let i = 0; i < transitionTable.length; i++) {
-        Nodes[i] = {
-          id: i, label: i.toString()
-        }
-      }
-      for (let i = 0; i < acceptState.length; i++) {
-        Nodes[acceptState[i].state].borderWidth = 5
-      }
-      return Nodes
-    },
     async fresh (containerid, networkdata) {
       const self = this
-      self.edges = new DataSet(self.createEdges(networkdata.transitionTable, networkdata.alphabet))
-      self.nodes = new DataSet(self.createNodes(networkdata.transitionTable, networkdata.acceptState))
+      self.edges = new DataSet(createEdges(networkdata.transitionTable, networkdata.alphabet))
+      self.nodes = new DataSet(createNodes(networkdata.transitionTable, networkdata.acceptState))
       var data = {
         nodes: self.nodes,
         edges: self.edges
