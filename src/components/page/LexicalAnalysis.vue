@@ -1,29 +1,6 @@
 <template>
   <el-row :gutter="50">
-    <el-col :span="7" :offset="1">
-      <el-row>
-        <el-col :span="24">
-          <p style="font-size: 50px;">{{title}}</p>
-          <span>例子:<br>T_Do=do<br>T_Double=double<br>具体规则请查看 <a href="">简介</a></span>
-        </el-col>
-        <el-col :span="24" style="margin-top:5%">
-          <el-form ref="REForm" :rules="rules" :model="REForm" label-width="0px">
-            <el-form-item prop="RE">
-              <el-input style="font-size:20px;" type="textarea" :autosize="{ minRows: 10, maxRows: 10}" v-model="REForm.RE"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="submitForm('REForm')" :loading="loading">构建状态机</el-button>
-              <el-button type="primary" :disabled="disable" @click="goto('/index/nfatoken')">Token模拟提取</el-button>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" :disabled="disable">收藏</el-button>
-              <el-button type="primary" :disabled="disable">查看代码</el-button>
-            </el-form-item>
-          </el-form>
-        </el-col>
-      </el-row>
-    </el-col>
-    <el-col :span="15">
+    <el-col :span="15" :offset="1">
       <el-row>
         <el-col :span="24">
           <span style="font-size: 35px;">NFA</span>
@@ -44,6 +21,29 @@
           <el-button @click="Zoom('DFA_S')">放大/收缩</el-button>
           <el-button @click="fitAnimated('DFA_S')">鹰眼</el-button>
           <div id="DFA_S" :class="{'active':isChoose3}"></div>
+        </el-col>
+      </el-row>
+    </el-col>
+    <el-col :span="7">
+      <el-row>
+        <el-col :span="24">
+          <p style="font-size: 50px;">{{title}}</p>
+          <span>例子:<br>T_Do=do<br>T_Double=double<br>具体规则请查看 <a href="">简介</a></span>
+        </el-col>
+        <el-col :span="24" style="margin-top:5%">
+          <el-form ref="REForm" :rules="rules" :model="REForm" label-width="0px">
+            <el-form-item prop="RE">
+              <el-input style="font-size:20px;" type="textarea" :autosize="{ minRows: 10, maxRows: 10}" v-model="REForm.RE"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="submitForm('REForm')" :loading="loading">构建状态机</el-button>
+              <el-button type="primary" :disabled="disable" @click="goto('/index/nfatoken')">Token模拟提取</el-button>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" :disabled="disable">收藏</el-button>
+              <el-button type="primary" :disabled="disable">查看代码</el-button>
+            </el-form-item>
+          </el-form>
         </el-col>
       </el-row>
     </el-col>
