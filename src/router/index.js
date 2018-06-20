@@ -6,6 +6,10 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
+      path:'/index',
+      component:resolve=>require(['../components/Home.vue'],resolve)
+    },
+    {
       path: '/',
       redirect: '/index/lexicalanalysis'
     },
