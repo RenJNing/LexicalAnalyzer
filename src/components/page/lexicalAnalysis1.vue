@@ -31,13 +31,13 @@
                   <div class="graph">
                     <span style="font-size: 35px;">NFA</span>
                     <div style="float: right">
-                      <el-button @click="layoutChange('NFAGeneration', NFA)">{{this.NFA.layoutText}}</el-button>
+                      <el-button @click="layoutChange('NFAGeneration', NFA)">{{NFA.layoutText}}</el-button>
                       <el-button @click="fitAnimated(NFA)">鹰眼</el-button>
                     </div>
                     <div style="height:350px; " id="NFAvis"></div>
                   </div>
                 </el-row>
-                <div v-if="this.NFA.tokenChange === true" class="token">
+                <div v-if="NFA.tokenChange === true" class="token">
                   <el-row>
                     <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 2, maxRows: 2}" v-model="NFA.TokenForm.Token" clearable></el-input>
                   </el-row>
@@ -71,15 +71,15 @@
                     <div style="height:350px; " id="DFAvis"></div>
                   </div>
                 </el-row>
-                <div v-if="this.DFA.tokenChange === true" class="token">
+                <div v-if="DFA.tokenChange === true" class="token">
                   <el-row>
-                    <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 2, maxRows: 2}" v-model="this.DFA.TokenForm.Token" clearable></el-input>
+                    <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 2, maxRows: 2}" v-model="DFA.TokenForm.Token" clearable></el-input>
                   </el-row>
                 </div>
                 <div v-else class="token">
                   <el-row>
                     <el-col :span="24">
-                      <!--p id="p" v-html="DFA.Token"></p-->
+                      <p v-html="DFA.Token"></p>
                     </el-col>
                   </el-row>
                 </div>
@@ -476,7 +476,9 @@ export default {
 
           object.FNAMachine = create_DFA(self.DFAdata.transitionTable, self.DFAdata.alphabet, self.DFAdata.acceptState)
           object.FNAMachine.feedText(object.TokenForm.Token)
+          console.log('222222222222222222222222222')
           object.nextState = object.FNAMachine.init()
+          console.log('33333333333333333333333333333')
           // self.fresh(self.FAdata)
           self.changeNode(object.nextState.graphInfo.highlightNodes, 1, object)
           // self.nextState = {graphInfo: {highlightNodes: [0]}}
@@ -682,7 +684,7 @@ export default {
             type: 'success',
             message: '遵循最长子串原则继续重复做闭包和读字符'
           })
-
+          self.changeWindow(object)
           this.changeNode(object.lastState.graphInfo.highlightNodes, 0, object)
           this.changeNode(object.nextState.graphInfo.highlightNodes, 2, object)
 
@@ -695,6 +697,7 @@ export default {
             type: 'info',
             message: '遵循最长子串原则继续重复做闭包和读字符'
           })
+          self.changeWindow(object)
           this.changeNode(object.lastState.graphInfo.highlightNodes, 0, object)
           this.changeNode(object.nextState.graphInfo.highlightNodes, 1, object)
 
@@ -708,7 +711,7 @@ export default {
             type: 'success',
             message: '提取Token'
           })
-
+          self.changeWindow(object)
           this.changeNode(object.lastState.graphInfo.highlightNodes, 0, object)
           this.changeNode(object.nextState.graphInfo.highlightNodes, 1, object)
 

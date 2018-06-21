@@ -67,7 +67,7 @@ function create_DFA(TB, A, state2pattern) {
 			recognizedTokens = [];
 			currentTransition = null;
 
-			return this.createResponse(CODE.INIT);
+			return this.createResponse(DFA_CODE.INIT);
 		},
 		reset: function () {
 			currentState = 0;
@@ -76,17 +76,17 @@ function create_DFA(TB, A, state2pattern) {
 		nextStep: function () {
 			// 情况一：Token提取完成
 			if (scanStartIndex === scanEndIndex && scanEndIndex === (text.length - 1)) {
-				return this.createResponse(CODE.DONE);
+				return this.createResponse(DFA_CODE.DONE);
 			}
 
 			// 情况二：遇到了DFA拒绝的输入
 			if (currentState === -1 && acceptedState === null && alphabet.indexOf(text[scanEndIndex + 1]) != -1) {
-				return this.createResponse(CODE.REJECT);
+				return this.createResponse(DFA_CODE.REJECT);
 			}
 
 			// 情况三：遇到了DFA遇到了不认识的字符
 			if (currentState === -1 && acceptedState === null && alphabet.indexOf(text[scanEndIndex + 1]) === -1) {
-				return this.createResponse(CODE.UNKNOWN);
+				return this.createResponse(DFA_CODE.UNKNOWN);
 			}
 
 			// 前面三种情况不会改变状态机状态，后面的操作回改变状态机状态，先保存历史轨迹
@@ -112,16 +112,16 @@ function create_DFA(TB, A, state2pattern) {
 				scanEndIndex = scanStartIndex;
 
 				this.reset();
-				return this.createResponse(CODE.ACCEPT);
+				return this.createResponse(DFA_CODE.ACCEPT);
 			}
 
 			// 情况五：遵循最长子串原则继续读字符
 			this.readChar();
-			return this.createResponse(CODE.NEXTSTEP);
+			return this.createResponse(DFA_CODE.NEXTSTEP);
 		},
 		preStep: function () {
 			if (historials.length === 0) {
-				return this.createResponse(CODE.NOPRESTEP);
+				return this.createResponse(DFA_CODE.NOPRESTEP);
 			}
 			let lastState = historials.pop();
 			scanStartIndex = lastState.scanStartIndex;
@@ -130,7 +130,7 @@ function create_DFA(TB, A, state2pattern) {
 			acceptedState = lastState.acceptedState;
 			recognizedTokens = lastState.recognizedTokens.slice();
 			currentTransition = lastState.currentTransition;
-			return this.createResponse(CODE.PRESTEP);
+			return this.createResponse(DFA_CODE.PRESTEP);
 		},
 		readChar: function () {
 
@@ -180,9 +180,9 @@ function create_DFA(TB, A, state2pattern) {
 		createResponse: function (code) {
 			let resp;
 			switch (code) {
-				case CODE.INIT:
+				case DFA_CODE.INIT:
 					resp = {
-						code: CODE.INIT,
+						code: DFA_CODE.INIT,
 						graphInfo: {
 							highlightNodes: [currentState],
 							highlightEdges: []
@@ -200,9 +200,9 @@ function create_DFA(TB, A, state2pattern) {
 						}
 					}
 					break;
-				case CODE.DONE:
+				case DFA_CODE.DONE:
 					resp = {
-						code: CODE.DONE,
+						code: DFA_CODE.DONE,
 						graphInfo: {
 
 						},
@@ -212,9 +212,9 @@ function create_DFA(TB, A, state2pattern) {
 					};
 					break;
 
-				case CODE.NEXTSTEP:
+				case DFA_CODE.NEXTSTEP:
 					resp = {
-						code: CODE.NEXTSTEP,
+						code: DFA_CODE.NEXTSTEP,
 						graphInfo: {
 							highlightNodes: (currentState === -1) ? [] : [currentState],
 							highlightEdges: (currentTransition === null) ? [] : [currentTransition]
@@ -232,9 +232,9 @@ function create_DFA(TB, A, state2pattern) {
 						}
 					};
 					break;
-				case CODE.ACCEPT:
+				case DFA_CODE.ACCEPT:
 					resp = {
-						code: CODE.ACCEPT,
+						code: DFA_CODE.ACCEPT,
 						graphInfo: {
 							highlightNodes: [currentState],
 							highlightEdges: []
@@ -252,9 +252,9 @@ function create_DFA(TB, A, state2pattern) {
 						}
 					};
 					break;
-				case CODE.REJECT:
+				case DFA_CODE.REJECT:
 					resp = {
-						code: CODE.REJECT,
+						code: DFA_CODE.REJECT,
 						from: scanStartIndex + 1,
 						graphInfo: {
 
@@ -264,9 +264,9 @@ function create_DFA(TB, A, state2pattern) {
 						}
 					}
 					break;
-				case CODE.UNKNOWN:
+				case DFA_CODE.UNKNOWN:
 					resp = {
-						code: CODE.UNKNOWN,
+						code: DFA_CODE.UNKNOWN,
 						at: scanEndIndex + 1,
 						unknownChar: text[scanEndIndex + 1],
 						graphInfo: {
@@ -277,9 +277,9 @@ function create_DFA(TB, A, state2pattern) {
 						}
 					}
 					break;
-				case CODE.NOPRESTEP:
+				case DFA_CODE.NOPRESTEP:
 					resp = {
-						code: CODE.NOPRESTEP,
+						code: DFA_CODE.NOPRESTEP,
 						graphInfo: {
 							highlightNodes: [currentState],
 							highlightEdges: []
@@ -297,9 +297,9 @@ function create_DFA(TB, A, state2pattern) {
 						}
 					};
 					break;
-				case CODE.PRESTEP:
+				case DFA_CODE.PRESTEP:
 					resp = {
-						code: CODE.PRESTEP,
+						code: DFA_CODE.PRESTEP,
 						graphInfo: {
 							highlightNodes: (currentState === -1) ? [] : [currentState],
 							highlightEdges: (currentTransition === null) ? [] : [currentTransition]
