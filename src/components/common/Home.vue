@@ -28,6 +28,6 @@ export default {
   position: relative;
 }
 .content{
-  padding-bottom: 30px;
+  padding-bottom: 40px;
 }
 </style>

@@ -10,17 +10,21 @@ export default new Router({
       redirect: '/index'
     },
     {
-      path:'/index',
-      component:resolve=>require(['../components/common/Home.vue'],resolve),
+      path: '/index',
+      component: resolve => require(['../components/common/Home.vue'], resolve),
       redirect: '/index/lexical-analysis',
-      children:[
+      children: [
         {
           path: '/index/main-interface',
-          component: resolve => require(['../components/page/mainInterface.vue'],resolve),
+          component: resolve => require(['../components/page/mainInterface.vue'], resolve),
         },
         {
           path: '/index/lexical-analysis',
-          component: resolve => require(['../components/page/lexicalAnalysis1.vue'],resolve),
+          component: resolve => require(['../components/page/lexicalAnalysis1.vue'], resolve),
+        },
+        {
+          path: '/index/lexical-analysis1',
+          component: resolve => require(['../components/page/Test.vue'], resolve),
         },
       ]
     },
