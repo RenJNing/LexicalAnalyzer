@@ -6,12 +6,23 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path:'/index',
-      component:resolve=>require(['../components/Home.vue'],resolve)
+      path: '/',
+      redirect: '/index'
     },
     {
-      path: '/',
-      redirect: '/index/lexicalanalysis'
+      path:'/index',
+      component:resolve=>require(['../components/common/Home.vue'],resolve),
+      redirect: '/index/lexical-analysis',
+      children:[
+        {
+          path: '/index/main-interface',
+          component: resolve => require(['../components/page/mainInterface.vue'],resolve),
+        },
+        {
+          path: '/index/lexical-analysis',
+          component: resolve => require(['../components/page/lexicalAnalysis1.vue'],resolve),
+        },
+      ]
     },
     {
       path: '/index/lexicalanalysis',
