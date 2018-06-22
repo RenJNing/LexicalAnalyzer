@@ -45,7 +45,7 @@
                 <div v-else class="token">
                   <el-row>
                     <el-col :span="24">
-                      <p id="p" v-html="NFA.Token"></p>
+                      <p class="p" v-html="NFA.Token"></p>
                     </el-col>
                   </el-row>
                 </div>
@@ -79,7 +79,7 @@
                 <div v-else class="token">
                   <el-row>
                     <el-col :span="24">
-                      <p v-html="DFA.Token"></p>
+                      <p class="p" v-html="DFA.Token"></p>
                     </el-col>
                   </el-row>
                 </div>
@@ -105,15 +105,15 @@
                     <div style="height:350px; " id="DFA_Svis"></div>
                   </div>
                 </el-row>
-                <div v-if="this.DFA_S.tokenChange === true" class="token">
+                <div v-if="DFA_S.tokenChange === true" class="token">
                   <el-row>
-                    <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 2, maxRows: 2}" v-model="this.DFA_S.TokenForm.Token" clearable></el-input>
+                    <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 2, maxRows: 2}" v-model="DFA_S.TokenForm.Token" clearable></el-input>
                   </el-row>
                 </div>
                 <div v-else class="token">
                   <el-row>
                     <el-col :span="24">
-                      <!--p id="p" v-html="DFA_S.Token"></p-->
+                      <p class="p" v-html="DFA_S.Token"></p>
                     </el-col>
                   </el-row>
                 </div>
@@ -143,8 +143,9 @@
 <script>
 import {DataSet, Network} from '../../../node_modules/vis/dist/vis.js'
 import {createNodes, createEdges} from '../../api/vis_api'
-import {create_NFA, CODE} from '../../api/NFA'
+import {create_NFA, NFA_CODE} from '../../api/NFA'
 import {create_DFA, DFA_CODE} from '../../api/DFA'
+import {Message} from 'element-ui'
 export default {
   props: {
     // NFAvis: {
@@ -199,10 +200,10 @@ export default {
         acceptState: [
           {
             state: 4,
-            REId: 1
+            REId: 0
           }, {
             state: 16,
-            REId: 2
+            REId: 1
           }
         ]
       },
@@ -383,10 +384,33 @@ export default {
           for (let i = 0; i < input.length; i++) {
             re.push(input[i].substring(input[i].indexOf('=') + 1))
           }
+          let url = '/api/lexical/regularExpression'
+          let Params = {RE: re}
+          // self.$axios.post(url, Params).then(function (response) {
           self.loading = false
           self.disable = false
+          // self.NFAdata.transitionTable = response.data[0].transitionTable
+          // self.NFAdata.alphabet = response.data[0].alphabet
+          // self.NFAdata.acceptState = response.data[0].acceptStateList
+          // self.DFAdata.transitionTable = response.data[1].transitionTable
+          // self.DFAdata.alphabet = response.data[1].alphabet
+          // self.DFAdata.acceptState = response.data[1].acceptStateList
+          // self.DFA_Sdata.transitionTable = response.data[2].transitionTable
+          // self.DFA_Sdata.alphabet = response.data[2].alphabet
+          // self.DFA_Sdata.acceptState = response.data[2].acceptStateList
           sessionStorage.setItem('input', self.REForm.RE)
+          self.firstDFA = false
+          self.firstDFA_S = false
           self.fresh('NFAGeneration', self.NFAdata)
+          // }).catch(function (error) {
+          //   self.loading = false
+          //   console.log(error)
+          //   Message({
+          //     message: '请检查网络并重试',
+          //     type: 'error',
+          //     center: true
+          //   })
+          // })
         } else {
           Message({
             message: '格式错误，请检查输入',
@@ -401,15 +425,6 @@ export default {
     startNFA (formName, object) {
       const self = this
       if (object.tokenChange === true) {
-        /* self.RE = (function () {
-         let arr = self.REForm.RE
-         let str1 = "<p style='font-size: 25px;word-break:break-all;'>"
-         for (let i = 0; i < arr.length; i++) {
-           str1 = str1 + "<span class='mode" + i.toString() + "'>" + arr[i] + '</span><br>'
-         }
-         str1 = str1 + '</p>'
-         return str1
-       })() */
         self.addCSS(self.getCsstext())
         if (object.TokenForm.Token === '') {
           Message({
@@ -432,26 +447,6 @@ export default {
           object.startButton = 'danger'
           object.startText = '停止分词'
         }
-        /* self.$refs[formName].validate((valid) => {
-            if (valid) {
-              self.Token = self.TokenForm.Token
-              self.FNAMachine = create_NFA(self.NFAdata.transitionTable, self.NFAdata.alphabet, self.NFAdata.acceptState)
-              self.FNAMachine.init()
-              self.FNAMachine.feedText(self.TokenForm.Token)
-              self.fresh(self.NFAdata)
-              self.changeNode([0], 1)
-              self.nextState = {graphInfo: {highlightNodes: [0]}}
-              self.tokenChange = false;
-              // TODO：开始分词后 输入框不能编辑
-            } else {
-              Message({
-                message: '格式错误，请检查输入',
-                type: 'error',
-                center: true
-              })
-              return false
-            }
-          }) */
       } else {
         object.FNAMachine = null
         object.tokenChange = true
@@ -476,12 +471,8 @@ export default {
 
           object.FNAMachine = create_DFA(self.DFAdata.transitionTable, self.DFAdata.alphabet, self.DFAdata.acceptState)
           object.FNAMachine.feedText(object.TokenForm.Token)
-          console.log('222222222222222222222222222')
           object.nextState = object.FNAMachine.init()
-          console.log('33333333333333333333333333333')
-          // self.fresh(self.FAdata)
           self.changeNode(object.nextState.graphInfo.highlightNodes, 1, object)
-          // self.nextState = {graphInfo: {highlightNodes: [0]}}
           object.tokenChange = false
           object.startButton = 'danger'
           object.startText = '停止分词'
@@ -532,7 +523,6 @@ export default {
     // 下一步
     changeWindow (object) {
       const self = this
-      console.log(self.NFA.Token)
       let recognized = object.nextState.windowInfo.recognizedTokens.map(obj => {
         let temp = []
         temp.push(obj.startIndex)
@@ -552,8 +542,9 @@ export default {
       ]
       recognized.push(scanning)
       recognized.push(remains)
-      let html = self.cut(self.NFA.TokenForm.Token, recognized)
-      self.NFA.Token = html
+      console.log(recognized)
+      let html = self.cut(object.TokenForm.Token, recognized)
+      object.Token = html
     },
     next (object) {
       const self = this
@@ -574,17 +565,18 @@ export default {
       // let html = self.cut(object.TokenForm.Token, recognized)
       // object.Token = html
       switch (object.nextState.code) {
-        case CODE.DONE:
+        case NFA_CODE.DONE:
           self.$message({
             type: 'success',
             message: 'Token提取完成'
           })
           break
-        case CODE.DOCLOSURE:
+        case NFA_CODE.DOCLOSURE:
           self.$message({
             type: 'success',
             message: '遵循最长子串原则继续重复做闭包和读字符'
           })
+          self.changeWindow(object)
           if (object.lastState.graphInfo.highlightEdges === null) {
             this.changeNode(object.lastState.graphInfo.highlightNodes, 0, object)
             this.changeNode(object.nextState.graphInfo.highlightNodes, 2, object)
@@ -598,7 +590,7 @@ export default {
             this.changeEdge(object.nextState.graphInfo.highlightEdges, 2, object)
           }
           break
-        case CODE.READCHAR:
+        case NFA_CODE.READCHAR:
           self.$message({
             type: 'info',
             message: '遵循最长子串原则继续重复做闭包和读字符'
@@ -618,7 +610,7 @@ export default {
             this.changeEdge(object.nextState.graphInfo.highlightEdges, 1, object)
           }
           break
-        case CODE.ACCEPT:
+        case NFA_CODE.ACCEPT:
           self.$message({
             type: 'success',
             message: '提取Token'
@@ -637,17 +629,19 @@ export default {
             this.changeEdge(object.nextState.graphInfo.highlightEdges, 1, object)
           }
           break
-        case CODE.REJECT:
+        case NFA_CODE.REJECT:
           self.$message({
             type: 'success',
             message: '遇到了NFA拒绝的输入'
           })
+          self.autoControlFocus(object)
           break
-        case CODE.UNKNOWN:
+        case NFA_CODE.UNKNOWN:
           self.$message({
             type: 'success',
             message: '遇到了NFA遇到了不认识的字符'
           })
+          self.autoControlFocus(object)
           break
         default:
           break
@@ -723,14 +717,16 @@ export default {
         case DFA_CODE.REJECT:
           self.$message({
             type: 'success',
-            message: '遇到了NFA拒绝的输入'
+            message: '遇到了DFA拒绝的输入'
           })
+          self.autoControlFocus(object)
           break
         case DFA_CODE.UNKNOWN:
           self.$message({
             type: 'success',
-            message: '遇到了NFA遇到了不认识的字符'
+            message: '遇到了DFA遇到了不认识的字符'
           })
+          self.autoControlFocus(object)
           break
         default:
           break
@@ -741,31 +737,19 @@ export default {
       const self = this
       object.lastState = object.nextState
       object.nextState = object.FNAMachine.preStep()
-      let recognized = object.nextState.windowInfo.recognizedTokens.map(obj => {
-        let temp = []
-        temp.push(obj.startIndex)
-        temp.push(obj.endIndex)
-        temp.push(obj.REId)
-        return temp
-      })
-      let remains = [object.nextState.windowInfo.remains.startIndex, object.nextState.windowInfo.remains.endIndex, 888]
-      let scanning = [object.nextState.windowInfo.scanning.startIndex, object.nextState.windowInfo.scanning.endIndex, 999]
-      recognized.push(scanning)
-      recognized.push(remains)
-      let html = self.cut(object.TokenForm.Token, recognized)
-      object.NFA.Token = html
       switch (object.nextState.code) {
-        case CODE.NOPRESTEP:
+        case NFA_CODE.NOPRESTEP:
           self.$message({
             type: 'info',
             message: '已经是第一个状态了'
           })
           break
-        case CODE.PRESTEP:
+        case NFA_CODE.PRESTEP:
           self.$message({
             type: 'success',
             message: '返回到上一个步骤'
           })
+          self.changeWindow(object)
           this.changeNode(object.lastState.graphInfo.highlightNodes, 0, object)
           this.changeNode(object.nextState.graphInfo.highlightNodes, 1, object)
 
@@ -781,19 +765,6 @@ export default {
       object.lastState = object.nextState
       object.nextState = object.FNAMachine.preStep()
       self.focusNode(object.nextState.graphInfo.highlightNodes[0], object)
-      let recognized = object.nextState.windowInfo.recognizedTokens.map(obj => {
-        let temp = []
-        temp.push(obj.startIndex)
-        temp.push(obj.endIndex)
-        temp.push(obj.REId)
-        return temp
-      })
-      let remains = [object.nextState.windowInfo.remains.startIndex, object.nextState.windowInfo.remains.endIndex, 888]
-      let scanning = [object.nextState.windowInfo.scanning.startIndex, object.nextState.windowInfo.scanning.endIndex, 999]
-      recognized.push(scanning)
-      recognized.push(remains)
-      let html = self.cut(object.TokenForm.Token, recognized)
-      object.Token = html
       switch (object.nextState.code) {
         case DFA_CODE.NOPRESTEP:
           self.$message({
@@ -806,6 +777,7 @@ export default {
             type: 'success',
             message: '返回到上一个步骤'
           })
+          self.changeWindow(object)
           this.changeNode(object.lastState.graphInfo.highlightNodes, 0, object)
           this.changeNode(object.nextState.graphInfo.highlightNodes, 1, object)
 
@@ -824,7 +796,7 @@ export default {
         object.autoButton = 'danger'
         object.timer = setInterval(() => {
           this.next(object)
-          if (object.nextState.code === CODE.DONE) {
+          if (object.nextState.code === NFA_CODE.DONE) {
             object.auto = false
             object.autoText = '自动展示'
             object.autoButton = 'primary'
@@ -863,6 +835,7 @@ export default {
     cut (str, arr) {
       let str1 = ''
       for (let i of arr) {
+        console.log(i[2])
         if (i[2] < 888) {
           str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], i[1]) + '&nbsp;' + '</span>'
         } else {
@@ -939,9 +912,9 @@ export default {
           },
           physics: {
             barnesHut: {
-              gravitationalConstant: -2000,
+              gravitationalConstant: -5000,
               centralGravity: 0.1,
-              springLength: 100
+              springLength: 500
             }
           }
           // manipulation: {}
@@ -953,6 +926,7 @@ export default {
           nodes: self.NFA.nodes,
           edges: self.NFA.edges
         }
+        console.log(self.NFA.edges)
         let container = document.getElementById('NFAvis')
         self.NFA.network = new Network(container, data, options)
         self.NFA.network.on('doubleClick', (params) => {
@@ -1255,15 +1229,15 @@ export default {
     height:240px;
     background-color:#DDDDDD;
   }
-  #p{
-    font-size: 46px;
+  .p{
+    font-size: 21px;
     text-align:center;
     word-wrap:break-word;
   }
 </style>
 
 <style>
-span.mode999 {
-  background-color: red;
-}
+  span.mode999 {
+    background-color: red;
+  }
 </style>

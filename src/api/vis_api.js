@@ -5,18 +5,18 @@ function createEdges (transitionTable, alphabet) {
     for (var fState of _range(transitionTable.length)) {
       for (var chIndex of _range(alphabet.length)) {
         for (var tState of transitionTable[fState][chIndex]) {
-          Edges.push({id: Edges.length, from: fState, to: tState, arrows: 'to', label: alphabet[chIndex]})
+          Edges.push({id: Edges.length, from: fState, to: tState, arrows: 'to', label: alphabet[chIndex],color: {color: '#2b7ce9'}})
         }
       }
     }
-    Edges.push({id: 10086, from: 10086, to: 0, arrows: 'to', label: 'Start'})
+    Edges.push({id: 10086, from: 10086, to: 0, arrows: 'to', label: 'Start',color: {color: '#2b7ce9'}})
     return Edges
   }
   function createNodes (transitionTable, acceptState) {
     var Nodes = []
     for (let i = 0; i < transitionTable.length; i++) {
       Nodes[i] = {
-        id: i, label: i.toString()
+        id: i, label: i.toString(),color: {background: 'white'}
       }
     }
     for (let i = 0; i < acceptState.length; i++) {
