@@ -1,7 +1,7 @@
 /* eslint-disable */
-export { create_NFA, CODE }
+export { create_NFA, NFA_CODE }
 
-var CODE = {
+var NFA_CODE = {
   INIT: 0,
   DONE: 1,
   DOCLOSURE: 2,
@@ -144,7 +144,7 @@ function create_NFA(TB, A, state2pattern) {
       currentTransitions = [];
 
       currentStates.push(0);
-      return this.createResponse(CODE.INIT);
+      return this.createResponse(NFA_CODE.INIT);
     },
     reset: function () {
       currentStates = [];
@@ -158,19 +158,19 @@ function create_NFA(TB, A, state2pattern) {
       // 情况一：Token提取完成
       if (scanStartIndex === scanEndIndex && scanEndIndex === (text.length - 1)) {
         // console.log('Done.');
-        return this.createResponse(CODE.DONE);
+        return this.createResponse(NFA_CODE.DONE);
       }
 
       // 情况二：遇到了NFA拒绝的输入
       if (currentStates.length === 0 && acceptedStates.length === 0 && alphabet.indexOf(text[scanEndIndex + 1]) != -1) {
         // console.log(`fail to recognize from: ${scanStartIndex+1}`);
-        return this.createResponse(CODE.REJECT);
+        return this.createResponse(NFA_CODE.REJECT);
       }
 
       // 情况三：遇到了NFA遇到了不认识的字符
       if (currentStates.length === 0 && acceptedStates.length === 0 && alphabet.indexOf(text[scanEndIndex + 1]) === -1) {
         // console.log(`unknown char at: ${scanEndIndex+1} '${text[scanEndIndex+1]}'`);
-        return this.createResponse(CODE.UNKNOWN);
+        return this.createResponse(NFA_CODE.UNKNOWN);
       }
 
       // 前面三种情况不会改变状态机状态，后面的操作回改变状态机状态，先保存历史轨迹
@@ -199,24 +199,24 @@ function create_NFA(TB, A, state2pattern) {
         scanEndIndex = scanStartIndex;
 
         this.reset();
-        return this.createResponse(CODE.ACCEPT);
+        return this.createResponse(NFA_CODE.ACCEPT);
       }
 
       // 情况五：遵循最长子串原则继续重复做闭包和读字符
       if (TODOClosure) {
         this.doClosure();
         TODOClosure = false;
-        return this.createResponse(CODE.DOCLOSURE);
+        return this.createResponse(NFA_CODE.DOCLOSURE);
       } else {
         this.readChar();
         TODOClosure = true;
-        return this.createResponse(CODE.READCHAR);
+        return this.createResponse(NFA_CODE.READCHAR);
       }
 
     },
     preStep: function () {
       if (historials.length === 0) {
-        return this.createResponse(CODE.NOPRESTEP);
+        return this.createResponse(NFA_CODE.NOPRESTEP);
       }
       let lastState = historials.pop();
       TODOClosure = lastState.TODOClosure;
@@ -226,7 +226,7 @@ function create_NFA(TB, A, state2pattern) {
       acceptedStates = lastState.acceptedStates.slice();
       recognizedTokens = lastState.recognizedTokens.slice();
       currentTransitions = lastState.currentTransitions.slice();
-      return this.createResponse(CODE.PRESTEP);
+      return this.createResponse(NFA_CODE.PRESTEP);
     },
     doClosure: function () {
       console.log('do closure');
@@ -309,9 +309,9 @@ function create_NFA(TB, A, state2pattern) {
     createResponse: function (code) {
       let resp;
       switch (code) {
-        case CODE.INIT:
+        case NFA_CODE.INIT:
           resp = {
-            code: CODE.INIT,
+            code: NFA_CODE.INIT,
             graphInfo: {
               highlightNodes: currentStates.slice(),
               highlightEdges: currentTransitions.slice()
@@ -329,9 +329,9 @@ function create_NFA(TB, A, state2pattern) {
             }
           }
           break;
-        case CODE.DONE:
+        case NFA_CODE.DONE:
           resp = {
-            code: CODE.DONE,
+            code: NFA_CODE.DONE,
             graphInfo: {
 
             },
@@ -340,9 +340,9 @@ function create_NFA(TB, A, state2pattern) {
             }
           };
           break;
-        case CODE.DOCLOSURE:
+        case NFA_CODE.DOCLOSURE:
           resp = {
-            code: CODE.DOCLOSURE,
+            code: NFA_CODE.DOCLOSURE,
             graphInfo: {
               highlightNodes: currentStates.slice(),
               highlightEdges: currentTransitions.slice()
@@ -360,9 +360,9 @@ function create_NFA(TB, A, state2pattern) {
             }
           };
           break;
-        case CODE.READCHAR:
+        case NFA_CODE.READCHAR:
           resp = {
-            code: CODE.READCHAR,
+            code: NFA_CODE.READCHAR,
             graphInfo: {
               highlightNodes: currentStates.slice(),
               highlightEdges: currentTransitions.slice()
@@ -380,9 +380,9 @@ function create_NFA(TB, A, state2pattern) {
             }
           };
           break;
-        case CODE.ACCEPT:
+        case NFA_CODE.ACCEPT:
           resp = {
-            code: CODE.ACCEPT,
+            code: NFA_CODE.ACCEPT,
             graphInfo: {
               highlightNodes: currentStates.slice(),
               highlightEdges: currentTransitions.slice()
@@ -400,9 +400,9 @@ function create_NFA(TB, A, state2pattern) {
             }
           };
           break;
-        case CODE.REJECT:
+        case NFA_CODE.REJECT:
           resp = {
-            code: CODE.REJECT,
+            code: NFA_CODE.REJECT,
             from: scanStartIndex + 1,
             graphInfo: {
 
@@ -412,9 +412,9 @@ function create_NFA(TB, A, state2pattern) {
             }
           }
           break;
-        case CODE.UNKNOWN:
+        case NFA_CODE.UNKNOWN:
           resp = {
-            code: CODE.UNKNOWN,
+            code: NFA_CODE.UNKNOWN,
             at: scanEndIndex + 1,
             unknownChar: text[scanEndIndex + 1],
             graphInfo: {
@@ -425,9 +425,9 @@ function create_NFA(TB, A, state2pattern) {
             }
           }
           break;
-        case CODE.NOPRESTEP:
+        case NFA_CODE.NOPRESTEP:
           resp = {
-            code: CODE.NOPRESTEP,
+            code: NFA_CODE.NOPRESTEP,
             graphInfo: {
               highlightNodes: currentStates.slice(),
               highlightEdges: currentTransitions.slice()
@@ -445,9 +445,9 @@ function create_NFA(TB, A, state2pattern) {
             }
           }
           break;
-        case CODE.PRESTEP:
+        case NFA_CODE.PRESTEP:
           resp = {
-            code: CODE.PRESTEP,
+            code: NFA_CODE.PRESTEP,
             graphInfo: {
               highlightNodes: currentStates.slice(),
               highlightEdges: currentTransitions.slice()
