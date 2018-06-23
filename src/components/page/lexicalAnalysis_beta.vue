@@ -10,11 +10,11 @@
             <el-col :span="24" style="margin-top:5%;">
               <el-form ref="REForm" :rules="rulesRE" :model="REForm" label-width="0px">
                 <el-form-item prop="RE">
-                  <el-input style="font-size:20px;" placeholder="请输入词法规则：" type="textarea" :autosize="{ minRows: 14, maxRows: 14}" v-model="REForm.RE" :disabled="!this.active.tokenChange" clearable></el-input>
+                  <el-input style="font-size:20px;" placeholder="请输入词法规则：" type="textarea" :autosize="{ minRows: 14, maxRows: 14}" v-model="REForm.RE" :disabled="false" clearable></el-input>
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" @click="generateFA('REForm')" :loading="loading" :disabled="!this.active.tokenChange">构建状态机</el-button>
-                  <el-button type="primary" :disabled="!this.active.tokenChange">清空</el-button>
+                  <el-button type="primary" @click="generateFA('REForm')" :loading="loading" :disabled="false">构建状态机</el-button>
+                  <el-button type="primary" :disabled="false">清空</el-button>
                   <el-button type="primary">保存</el-button>
                 </el-form-item>
               </el-form>
@@ -51,10 +51,10 @@
                 </div>
                 <el-row>
                   <div class="controller">
-                    <el-button :type="this.NFA.startButton" @click="startNFA('TokenForm', NFA)">{{this.NFA.startText}}</el-button>
-                    <el-button @click="previous(NFA)">上一步</el-button>
-                    <el-button @click="next(NFA)">下一步</el-button>
-                    <el-button :type="this.NFA.autoButton" @click="autoControl(NFA)" plain>{{this.NFA.autoText}}</el-button>
+                    <el-button :type="NFA.startButton" @click="startNFA('TokenForm', NFA)" :disabled="!generateFlag">{{NFA.startText}}</el-button>
+                    <el-button @click="previous(this.NFA)" :disabled="NFA.tokenChange">上一步</el-button>
+                    <el-button @click="next(this.NFA)" :disabled="NFA.tokenChange">下一步</el-button>
+                    <el-button :type="NFA.autoButton" @click="autoControl(NFA)" :disabled="NFA.tokenChange" plain>{{NFA.autoText}}</el-button>
                   </div>
                 </el-row>
               </div>
@@ -65,7 +65,7 @@
                   <div class="graph">
                     <span style="font-size: 35px;">DFA</span>
                     <div style="float: right">
-                      <el-button @click="layoutChange('DFAGeneration', DFA)">{{this.DFA.layoutText}}</el-button>
+                      <el-button @click="layoutChange('DFAGeneration', DFA)">{{DFA.layoutText}}</el-button>
                       <el-button @click="fitAnimated(DFA)">鹰眼</el-button>
                     </div>
                     <div style="height:350px; " id="DFAvis"></div>
@@ -85,10 +85,10 @@
                 </div>
                 <el-row>
                   <div class="controller">
-                    <el-button :type="this.DFA.startButton" @click="startDFA('TokenForm', DFA)">{{this.DFA.startText}}</el-button>
-                    <el-button @click="previousFocus(DFA)">上一步</el-button>
-                    <el-button @click="nextFocus(DFA)">下一步</el-button>
-                    <el-button :type="this.DFA.autoButton" @click="autoControlFocus(DFA)" plain>{{this.DFA.autoText}}</el-button>
+                    <el-button :type="this.DFA.startButton" @click="startDFA('TokenForm', DFA)" :disabled="!generateFlag">{{this.DFA.startText}}</el-button>
+                    <el-button @click="previousFocus(DFA)" :disabled="DFA.tokenChange">上一步</el-button>
+                    <el-button @click="nextFocus(DFA)" :disabled="DFA.tokenChange">下一步</el-button>
+                    <el-button :type="this.DFA.autoButton" @click="autoControlFocus(DFA)" :disabled="DFA.tokenChange" plain>{{this.DFA.autoText}}</el-button>
                   </div>
                 </el-row>
               </div>
@@ -100,7 +100,7 @@
                     <span style="font-size: 35px;">DFA化简</span>
                     <div style="float: right">
                       <el-button @click="layoutChange('DFASimplification', DFA_S)">{{this.DFA_S.layoutText}}</el-button>
-                      <el-button @click="fitAnimated(DFA_S)">鹰眼</el-button>
+                      <el-button @click="fitAnimated(DFA_S)" >鹰眼</el-button>
                     </div>
                     <div style="height:350px; " id="DFA_Svis"></div>
                   </div>
@@ -119,10 +119,10 @@
                 </div>
                 <el-row>
                   <div class="controller">
-                    <el-button :type="this.DFA_S.startButton" @click="startDFA_S('TokenForm', DFA_S)">{{this.DFA_S.startText}}</el-button>
-                    <el-button @click="previousFocus(DFA_S)">上一步</el-button>
-                    <el-button @click="nextFocus(DFA_S)">下一步</el-button>
-                    <el-button :type="this.DFA_S.autoButton" @click="autoControlFocus(DFA_S)" plain>{{this.DFA_S.autoText}}</el-button>
+                    <el-button :type="this.DFA_S.startButton" @click="startDFA_S('TokenForm', DFA_S)" :disabled="!generateFlag">{{this.DFA_S.startText}}</el-button>
+                    <el-button @click="previousFocus(DFA_S)" :disabled="DFA_S.tokenChange">上一步</el-button>
+                    <el-button @click="nextFocus(DFA_S)" :disabled="DFA_S.tokenChange">下一步</el-button>
+                    <el-button :type="this.DFA_S.autoButton" @click="autoControlFocus(DFA_S)" :disabled="DFA_S.tokenChange" plain>{{this.DFA_S.autoText}}</el-button>
                   </div>
                 </el-row>
               </div>
@@ -200,10 +200,10 @@ export default {
         acceptState: [
           {
             state: 4,
-            REId: 0
+            REId: 1
           }, {
             state: 16,
-            REId: 1
+            REId: 2
           }
         ]
       },
@@ -283,11 +283,13 @@ export default {
         ]
       },
       title: '词法分析',
-      active: {},
+      active: true,
       loading: false,
+      firstNFA: false,
       firstDFA: false,
       firstDFA_S: false,
-      NFA: {
+      generateFlag: false,
+      NFA_TEMP: {
         loading: false,
 
         FNAMachine: {},
@@ -306,7 +308,7 @@ export default {
         startText: '开始分词',
         autoButton: 'primary'
       },
-      DFA: {
+      DFA_TEMP: {
         loading: false,
         FNAMachine: {},
         lastState: null,
@@ -324,7 +326,7 @@ export default {
         startText: '开始分词',
         autoButton: 'primary'
       },
-      DFA_S: {
+      DFA_S_TEMP: {
         loading: false,
         FNAMachine: {},
         lastState: null,
@@ -345,25 +347,30 @@ export default {
       cdoe: {}
     }
   },
-  mounted () {
-    this.active = this.NFA
+  created () {
+    this.NFA = this.NFA_TEMP
+    this.DFA = this.DFA_TEMP
+    this.DFA_S = this.DFA_S_TEMP
   },
-
   methods: {
     // 检测tabs标签更改,将现在活跃的标签的数据保存到active，并将上一次活跃的数据放回到相应的位置，实现不同标签页的切换
     handleClick (tab, event) {
       console.log('我点击了' + this.activeName)
       if (this.activeName === 'NFAGeneration') {
         this.active = this.NFA
+        if (this.firstNFA === false && this.generateFlag === true) {
+          this.fresh('NFAGeneration', this.NFAdata)
+          this.firstNFA = true
+        }
       } else if (this.activeName === 'DFAGeneration') {
         this.active = this.DFA
-        if (this.firstDFA === false) {
+        if (this.firstDFA === false && this.generateFlag === true) {
           this.fresh('DFAGeneration', this.DFAdata)
           this.firstDFA = true
         }
       } else if (this.activeName === 'DFASimplification') {
         this.active = this.DFA_S
-        if (this.firstDFA_S === false) {
+        if (this.firstDFA_S === false && this.generateFlag === true) {
           this.fresh('DFASimplification', this.DFA_Sdata)
           this.firstDFA_S = true
         }
@@ -378,6 +385,9 @@ export default {
       const self = this
       self.$refs[formName].validate((valid) => {
         if (valid) {
+          self.NFA = self.NFA_TEMP
+          self.DFA = self.DFA_TEMP
+          self.DFA_S = self.DFA_S_TEMP
           self.loading = true
           let re = []
           let input = self.REForm.RE.split('\n')
@@ -386,22 +396,42 @@ export default {
           }
           let url = '/api/lexical/regularExpression'
           let Params = {RE: re}
-          // self.$axios.post(url, Params).then(function (response) {
-          self.loading = false
-          self.disable = false
-          // self.NFAdata.transitionTable = response.data[0].transitionTable
-          // self.NFAdata.alphabet = response.data[0].alphabet
-          // self.NFAdata.acceptState = response.data[0].acceptStateList
-          // self.DFAdata.transitionTable = response.data[1].transitionTable
-          // self.DFAdata.alphabet = response.data[1].alphabet
-          // self.DFAdata.acceptState = response.data[1].acceptStateList
-          // self.DFA_Sdata.transitionTable = response.data[2].transitionTable
-          // self.DFA_Sdata.alphabet = response.data[2].alphabet
-          // self.DFA_Sdata.acceptState = response.data[2].acceptStateList
-          sessionStorage.setItem('input', self.REForm.RE)
+          self.generateFlag = true
+          self.firstNFA = false
           self.firstDFA = false
           self.firstDFA_S = false
-          self.fresh('NFAGeneration', self.NFAdata)
+          if (this.activeName === 'NFAGeneration') {
+            self.fresh('NFAGeneration', self.NFAdata)
+            this.firstNFA = true
+          } else if (this.activeName === 'DFAGeneration') {
+            self.fresh('DFAGeneration', self.DFAdata)
+            this.firstDFA = true
+          } else if (this.activeName === 'DFASimplification') {
+            self.fresh('DFASimplification', self.DFA_Sdata)
+            this.firstDFA_S = true
+          }
+
+          // self.fresh('NFAGeneration', self.NFAdata)
+          // self.fresh('DFAGeneration', self.DFAdata)
+          // self.fresh('DFASimplification', self.DFA_Sdata)
+          // self.$axios.post(url, Params).then(function (response) {
+          //   self.loading = false
+          //   self.disable = false
+          //   self.NFAdata.transitionTable = response.data[0].transitionTable
+          //   self.NFAdata.alphabet = response.data[0].alphabet
+          //   self.NFAdata.acceptState = response.data[0].acceptStateList
+          //   self.DFAdata.transitionTable = response.data[1].transitionTable
+          //   self.DFAdata.alphabet = response.data[1].alphabet
+          //   self.DFAdata.acceptState = response.data[1].acceptStateList
+          //   self.DFA_Sdata.transitionTable = response.data[2].transitionTable
+          //   self.DFA_Sdata.alphabet = response.data[2].alphabet
+          //   self.DFA_Sdata.acceptState = response.data[2].acceptStateList
+          //   sessionStorage.setItem('input', self.REForm.RE)
+          //   self.firstDFA = false
+          //   self.firstDFA_S = false
+          //   self.fresh('NFAGeneration', self.NFAdata)
+          //   self.fresh('DFAGeneration', self.DFAdata)
+          //   self.fresh('DFASimplification', self.DFA_Sdata)
           // }).catch(function (error) {
           //   self.loading = false
           //   console.log(error)
@@ -425,6 +455,15 @@ export default {
     startNFA (formName, object) {
       const self = this
       if (object.tokenChange === true) {
+        /* self.RE = (function () {
+           let arr = self.REForm.RE
+           let str1 = "<p style='font-size: 25px;word-break:break-all;'>"
+           for (let i = 0; i < arr.length; i++) {
+             str1 = str1 + "<span class='mode" + i.toString() + "'>" + arr[i] + '</span><br>'
+           }
+           str1 = str1 + '</p>'
+           return str1
+         })() */
         self.addCSS(self.getCsstext())
         if (object.TokenForm.Token === '') {
           Message({
@@ -447,6 +486,26 @@ export default {
           object.startButton = 'danger'
           object.startText = '停止分词'
         }
+        /* self.$refs[formName].validate((valid) => {
+              if (valid) {
+                self.Token = self.TokenForm.Token
+                self.FNAMachine = create_NFA(self.NFAdata.transitionTable, self.NFAdata.alphabet, self.NFAdata.acceptState)
+                self.FNAMachine.init()
+                self.FNAMachine.feedText(self.TokenForm.Token)
+                self.fresh(self.NFAdata)
+                self.changeNode([0], 1)
+                self.nextState = {graphInfo: {highlightNodes: [0]}}
+                self.tokenChange = false;
+                // TODO：开始分词后 输入框不能编辑
+              } else {
+                Message({
+                  message: '格式错误，请检查输入',
+                  type: 'error',
+                  center: true
+                })
+                return false
+              }
+            }) */
       } else {
         object.FNAMachine = null
         object.tokenChange = true
@@ -471,8 +530,12 @@ export default {
 
           object.FNAMachine = create_DFA(self.DFAdata.transitionTable, self.DFAdata.alphabet, self.DFAdata.acceptState)
           object.FNAMachine.feedText(object.TokenForm.Token)
+          console.log('222222222222222222222222222')
           object.nextState = object.FNAMachine.init()
+          console.log('33333333333333333333333333333')
+          // self.fresh(self.FAdata)
           self.changeNode(object.nextState.graphInfo.highlightNodes, 1, object)
+          // self.nextState = {graphInfo: {highlightNodes: [0]}}
           object.tokenChange = false
           object.startButton = 'danger'
           object.startText = '停止分词'
@@ -651,20 +714,6 @@ export default {
       const self = this
       object.lastState = object.nextState
       object.nextState = object.FNAMachine.nextStep()
-
-      // let recognized = object.nextState.windowInfo.recognizedTokens.map(obj => {
-      //   let temp = []
-      //   temp.push(obj.startIndex)
-      //   temp.push(obj.endIndex)
-      //   temp.push(obj.REId)
-      //   return temp
-      // })
-      // let remains = [object.nextState.windowInfo.remains.startIndex, object.nextState.windowInfo.remains.endIndex, 888]
-      // let scanning = [object.nextState.windowInfo.scanning.startIndex, object.nextState.windowInfo.scanning.endIndex, 999]
-      // recognized.push(scanning)
-      // recognized.push(remains)
-      // let html = self.cut(object.TokenForm.Token, recognized)
-      // object.Token = html
       switch (object.nextState.code) {
         case DFA_CODE.DONE:
           self.$message({
@@ -724,7 +773,7 @@ export default {
         case DFA_CODE.UNKNOWN:
           self.$message({
             type: 'success',
-            message: '遇到了DFA遇到了不认识的字符'
+            message: '遇到了DFA不认识的字符'
           })
           self.autoControlFocus(object)
           break
@@ -873,7 +922,7 @@ export default {
                 background: 'white'
               }},
             shape: 'dot',
-            size: 30,
+            size: 26,
             font: {
               size: 18
             },
@@ -881,7 +930,7 @@ export default {
           },
           edges: {
             font: {
-              size: 35,
+              size: 32,
               align: 'top'
             },
             color: {
@@ -912,9 +961,9 @@ export default {
           },
           physics: {
             barnesHut: {
-              gravitationalConstant: -5000,
+              gravitationalConstant: -2000,
               centralGravity: 0.1,
-              springLength: 500
+              springLength: 140
             }
           }
           // manipulation: {}
@@ -926,7 +975,6 @@ export default {
           nodes: self.NFA.nodes,
           edges: self.NFA.edges
         }
-        console.log(self.NFA.edges)
         let container = document.getElementById('NFAvis')
         self.NFA.network = new Network(container, data, options)
         self.NFA.network.on('doubleClick', (params) => {
@@ -964,7 +1012,7 @@ export default {
                 background: 'white'
               }},
             shape: 'dot',
-            size: 30,
+            size: 26,
             font: {
               size: 18
             },
@@ -972,7 +1020,7 @@ export default {
           },
           edges: {
             font: {
-              size: 35,
+              size: 32,
               align: 'top'
             },
             color: {
@@ -1005,7 +1053,7 @@ export default {
             barnesHut: {
               gravitationalConstant: -2000,
               centralGravity: 0.1,
-              springLength: 100
+              springLength: 140
             }
           }
           // manipulation: {}
@@ -1048,7 +1096,7 @@ export default {
                 background: 'white'
               }},
             shape: 'dot',
-            size: 30,
+            size: 26,
             font: {
               size: 18
             },
@@ -1056,7 +1104,7 @@ export default {
           },
           edges: {
             font: {
-              size: 35,
+              size: 32,
               align: 'top'
             },
             color: {
@@ -1089,7 +1137,7 @@ export default {
             barnesHut: {
               gravitationalConstant: -2000,
               centralGravity: 0.1,
-              springLength: 100
+              springLength: 140
             }
           }
           // manipulation: {}

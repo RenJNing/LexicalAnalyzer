@@ -1,4 +1,5 @@
-export {DFA_CODE,create_DFA}
+/* eslint-disable */
+export { DFA_CODE, create_DFA }
 var DFA_CODE = {
 	INIT: 0,
 	DONE: 1,
@@ -72,6 +73,7 @@ function create_DFA(TB, A, state2pattern) {
 		reset: function () {
 			currentState = 0;
 			currentTransition = null;
+			acceptedState = null;
 		},
 		nextStep: function () {
 			// 情况一：Token提取完成

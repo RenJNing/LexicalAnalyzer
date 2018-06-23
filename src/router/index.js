@@ -20,25 +20,13 @@ export default new Router({
         },
         {
           path: '/index/lexical-analysis',
-          component: resolve => require(['../components/page/lexicalAnalysis1.vue'], resolve),
+          component: resolve => require(['../components/page/lexicalAnalysis.vue'], resolve),
         },
         {
           path: '/index/lexical-analysis1',
-          component: resolve => require(['../components/page/Test.vue'], resolve),
-        },
+          component: resolve => require(['../components/page/lexicalAnalysis_beta.vue'], resolve),
+        }
       ]
-    },
-    {
-      path: '/index/lexicalanalysis',
-      component: resolve => require(['../components/page/LexicalAnalysis.vue'], resolve)
-    },
-    {
-      path: '/index/nnn',
-      component: resolve => require(['../components/page/Test.vue'], resolve)
-    },
-    {
-      path: '/index/nfatoken',
-      component: resolve => require(['../components/page/NFAToken.vue'], resolve)
     }
   ]
 })
