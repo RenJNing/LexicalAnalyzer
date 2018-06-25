@@ -311,25 +311,32 @@ export default {
           for (let i = 0; i < input.length; i++) {
             re.push(input[i].substring(input[i].indexOf('=') + 1))
           }
-          // let url = '/api/lexical/regularExpression'
-          // let Params = {RE: re}
-          // self.$axios.post(url, Params).then(function (response) {
-          sessionStorage.setItem('input', self.REForm.RE)
-          self.addCSS(self.getCsstext())
-          self.isFirsttime = false
-          self.fresh()
-          // sessionStorage.setItem('NFAdata', JSON.stringify(self.NFAdata))
-          // sessionStorage.setItem('DFAdata', JSON.stringify(self.DFAdata))
-          // sessionStorage.setItem('DFA_Sdata', JSON.stringify(self.DFA_Sdata))
-          // }).catch(function (error) {
-          //   self.loading = false
-          //   console.log(error)
-          //   Message({
-          //     message: '请检查网络并重试',
-          //     type: 'error',
-          //     center: true
-          //   })
-          // })
+          let url = '/api/lexical/regularExpression'
+          let Params = {RE: re}
+          self.$axios.post(url, Params).then(function (response) {
+            console.log(response)
+            self.NFA.data.transitionTable = response.data[0].transitionTable
+            self.NFA.data.alphabet = response.data[0].alphabet
+            self.NFA.data.acceptState = response.data[0].acceptStateList
+            self.DFA.data.transitionTable = response.data[1].transitionTable
+            self.DFA.data.alphabet = response.data[1].alphabet
+            self.DFA.data.acceptState = response.data[1].acceptStateList
+            self.DFA_S.data.transitionTable = response.data[2].transitionTable
+            self.DFA_S.data.alphabet = response.data[2].alphabet
+            self.DFA_S.data.acceptState = response.data[2].acceptStateList
+            sessionStorage.setItem('input', self.REForm.RE)
+            self.addCSS(self.getCsstext())
+            self.isFirsttime = false
+            self.fresh()
+          }).catch(function (error) {
+            self.loading = false
+            console.log(error)
+            Message({
+              message: '请检查网络并重试',
+              type: 'error',
+              center: true
+            })
+          })
         } else {
           Message({
             message: '格式错误，请检查输入',
