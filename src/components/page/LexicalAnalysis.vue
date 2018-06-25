@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <el-row>
-      <el-col :span="5" :offset="1">
+      <el-col :span="5" :offset="RE_offset">
         <div>
           <el-row>
             <el-col :span="24">
@@ -13,7 +13,7 @@
                   <el-input style="font-size:20px;" placeholder="请输入词法规则：" type="textarea" :autosize="{ minRows: 10, maxRows: 10}" v-model="REForm.RE"></el-input>
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" @click="generateFA('REForm')">构建状态机</el-button>
+                  <el-button :disabled="NFA.hasbegin" type="primary" @click="generateFA('REForm')">构建状态机</el-button>
                   <el-button @click="resetForm('REForm')" icon="el-icon-circle-close-outline" circle></el-button>
                   <el-button icon="el-icon-star-off" circle></el-button>
                 </el-form-item>
@@ -23,8 +23,11 @@
         </div>
       </el-col>
       <el-col :span="16" :offset="1">
+        <!-- <div v-if="isFirsttime" >
+          <p>词法分析是编译的第一阶段</p>
+        </div> -->
         <div class="tab">
-          <el-tabs v-model="TabActiveName">
+          <el-tabs v-model="TabActiveName" @tab-click="handleClick">
             <el-tab-pane label="NFA生成" name="NFAGeneration">
               <div style="background-color: #dddddd; height: 100%">
                 <el-row>
@@ -32,8 +35,8 @@
                     <span style="font-size: 35px;">NFA</span>
                     <div style="float: right">
                       <!-- <el-button @click="layoutChange()">{{layoutText}}</el-button> -->
-                      <el-button @click="full_screen(NFA)">全屏/还原</el-button>
-                      <el-button @click="fitAnimated(NFA)">适应屏幕</el-button>
+                      <el-button type="info" :icon="NFA.zoomicon" circle @click="full_screen(NFA)"></el-button>
+                      <el-button type="info" icon="el-icon-view" circle @click="fitAnimated(NFA)"></el-button>
                     </div>
                     <div class="vis" id="NFAvis"></div>
                   </div>
@@ -48,10 +51,10 @@
                 </div>
                 <el-row>
                   <div class="controller">
-                    <el-button @click="startButton(NFA)" :type="NFA.startbuttonType">{{NFA.startbuttonText}}</el-button>
-                    <el-button @click="previous(NFA)">上一步</el-button>
-                    <el-button @click="next(NFA)">下一步</el-button>
-                    <el-button @click="autoControl(NFA)" :type="NFA.autobuttonType" plain>{{NFA.autobuttonText}}</el-button>
+                    <el-button :disabled="isFirsttime" @click="startButton(NFA)" :type="NFA.startbuttonType">{{NFA.startbuttonText}}</el-button>
+                    <el-button :disabled="!NFA.hasbegin" @click="previous(NFA)">上一步</el-button>
+                    <el-button :disabled="!NFA.hasbegin" @click="next(NFA)">下一步</el-button>
+                    <el-button :disabled="!NFA.hasbegin" @click="autoControl(NFA)" :type="NFA.autobuttonType" plain>{{NFA.autobuttonText}}</el-button>
                   </div>
                 </el-row>
               </div>
@@ -125,6 +128,7 @@
             </el-tab-pane>
           </el-tabs>
         </div>
+
       </el-col>
     </el-row>
   </div>
@@ -215,40 +219,17 @@ export default {
         startbuttonText: '开始分词',
         autobuttonType: 'primary',
         autobuttonText: '自动展示',
-        isFull_screen: false
+        isFull_screen: false,
+        zoomicon: 'el-icon-zoom-in'
       },
       DFA: {
         data: {
           transitionTable: [
-            [[], [1], [], [], [], [], [7]], // 0
-            [[], [], [], [], [2], [], []], // 1
-            [[], [], [], [], [], [3], []], // 2
-            [[4], [], [], [], [], [], []], // 3
-            [[], [], [], [5], [], [], []], // 4
-            [[], [], [6], [], [], [], []], // 5
-            [[], [], [], [], [], [], []], // 6
-            [[], [], [], [], [], [], []] // 7
           ],
 
-          alphabet: ['b', 'd', 'e', 'l', 'o', 'u', 'x'],
+          alphabet: [],
 
           acceptState: [
-            {
-              state: 2,
-              REId: 0
-            },
-            {
-              state: 6,
-              REId: 1
-            },
-            {
-              state: 1,
-              REId: 2
-            },
-            {
-              state: 7,
-              REId: 3
-            }
           ]
         },
         machine: null,
@@ -313,7 +294,9 @@ export default {
         autobuttonText: '自动展示',
         isFull_screen: false
       },
-      layout: true
+      layout: true,
+      RE_offset: 1,
+      isFirsttime: true
     }
   },
   methods: {
@@ -333,6 +316,7 @@ export default {
           // self.$axios.post(url, Params).then(function (response) {
           sessionStorage.setItem('input', self.REForm.RE)
           self.addCSS(self.getCsstext())
+          self.isFirsttime = false
           self.fresh()
           // sessionStorage.setItem('NFAdata', JSON.stringify(self.NFAdata))
           // sessionStorage.setItem('DFAdata', JSON.stringify(self.DFAdata))
@@ -486,7 +470,9 @@ export default {
         object.startbuttonType = 'primary'
         object.startbuttonText = '开始分词'
         self.refresh(object)
-        // if (object.auto === true) { this.autoControl(object) }
+        if (self.NFA.autobuttonText === '停止') {
+          self.autoControl(object)
+        }
       }
     },
     addCSS (cssText) {
@@ -587,16 +573,18 @@ export default {
           self.changeGraph(object, 1)
           break
         case NFA_CODE.REJECT:
-          self.$message({
-            type: 'error',
-            message: '遇到了NFA拒绝的输入'
-          })
+          // self.$message({
+          //   type: 'error',
+          //   message: '遇到了NFA拒绝的输入'
+          // })
+          alert('遇到了NFA拒绝的输入')
           break
         case NFA_CODE.UNKNOWN:
-          self.$message({
-            type: 'error',
-            message: '遇到了NFA不认识的字符'
-          })
+          // self.$message({
+          //   type: 'error',
+          //   message: '遇到了NFA不认识的字符'
+          // })
+          alert('遇到了NFA不认识的字符')
           break
         default:
           break
@@ -731,13 +719,25 @@ export default {
       recognized.push(remains)
       let html = self.cut(object.TokenForm, recognized)
       object.Token = html
+      console.log(document.getElementsByClassName('graph')[0].offsetWidth)
+      document.getElementsByClassName('p')[0].scrollLeft =
+        document.getElementsByClassName('mode999')[0].offsetLeft -
+        document.getElementsByClassName('graph')[0].offsetWidth / 2
     },
     changeGraph (object, status) {
       const self = this
       self.changeNode(object, object.lastState.graphInfo.highlightNodes, 0)
-      self.changeNode(object, object.nextState.graphInfo.highlightNodes, status)
+      self.changeNode(
+        object,
+        object.nextState.graphInfo.highlightNodes,
+        status
+      )
       self.changeEdge(object, object.lastState.graphInfo.highlightEdges, 0)
-      self.changeEdge(object, object.nextState.graphInfo.highlightEdges, status)
+      self.changeEdge(
+        object,
+        object.nextState.graphInfo.highlightEdges,
+        status
+      )
     },
     cut (str, arr) {
       let str1 = ''
@@ -818,15 +818,39 @@ export default {
     },
     // 全屏化/还原
     full_screen (object) {
+      object.zoomicon = object.isFull_screen
+        ? 'el-icon-zoom-in'
+        : 'el-icon-zoom-out'
       object.isFull_screen = !object.isFull_screen
     },
     // 刷新图
     refresh (object) {
       object.nodes.clear()
       object.edges.clear()
-      object.nodes.add(createNodes(object.data.transitionTable, object.data.acceptState))
-      object.edges.add(createEdges(object.data.transitionTable, object.data.alphabet))
+      object.nodes.add(
+        createNodes(object.data.transitionTable, object.data.acceptState)
+      )
+      object.edges.add(
+        createEdges(object.data.transitionTable, object.data.alphabet)
+      )
       object.vis.stabilize()
+    },
+    // 切换Tab菜单时自动鹰眼
+    handleClick (tab, event) {
+      const self = this
+      if (self.TabActiveName === 'DFAGeneration') {
+        self.$nextTick(() => {
+          self.fitAnimated(self.DFA)
+        })
+      } else if (self.TabActiveName === 'NFAGeneration') {
+        self.$nextTick(() => {
+          self.fitAnimated(self.NFA)
+        })
+      } else if (self.TabActiveName === 'DFASimplification') {
+        self.$nextTick(() => {
+          self.fitAnimated(self.DFA_S)
+        })
+      }
     }
   }
 }
@@ -856,7 +880,11 @@ export default {
   text-align: center;
   font-size: 46px;
   margin: 0px;
-  word-wrap: break-word;
+  /* word-wrap: break-word; */
+  height: 70px;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 div.graph.active {
   position: fixed;
@@ -869,8 +897,8 @@ div.graph.active {
   z-index: 10;
   background-color: rgba(221, 221, 221, 1);
 }
-div.graph.active div.vis{
-  height:95%;
+div.graph.active div.vis {
+  height: 95%;
 }
 div.graph div.vis {
   height: 350px;

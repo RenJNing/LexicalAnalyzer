@@ -388,7 +388,7 @@ export default {
           self.NFA = self.NFA_TEMP
           self.DFA = self.DFA_TEMP
           self.DFA_S = self.DFA_S_TEMP
-          self.loading = true
+          // self.loading = true
           let re = []
           let input = self.REForm.RE.split('\n')
           for (let i = 0; i < input.length; i++) {
