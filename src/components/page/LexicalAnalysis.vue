@@ -321,9 +321,11 @@ export default {
             self.DFA.data.transitionTable = response.data[1].transitionTable
             self.DFA.data.alphabet = response.data[1].alphabet
             self.DFA.data.acceptState = response.data[1].acceptStateList
+            console.log(self.DFA.data.acceptState)
             self.DFA_S.data.transitionTable = response.data[2].transitionTable
             self.DFA_S.data.alphabet = response.data[2].alphabet
             self.DFA_S.data.acceptState = response.data[2].acceptStateList
+            console.log(self.DFA_S.data.acceptState)
             sessionStorage.setItem('input', self.REForm.RE)
             self.addCSS(self.getCsstext())
             self.isFirsttime = false
@@ -749,25 +751,11 @@ export default {
     cut (str, arr) {
       let str1 = ''
       for (let i of arr) {
+        console.log(i)
         if (i[2] < 888) {
-          str1 =
-            str1 +
-            "<div class='tooltip mode" +
-            i[2].toString() +
-            "'>" +
-            str.substring(i[0], i[1]) +
-            '&nbsp;' +
-            '<span class="tooltiptext">' +
-            sessionStorage.getItem('input').split('\n')[i[2]] +
-            '</span></div>'
+          str1 = str1 + "<div class='tooltip mode" + i[2].toString() + "'>" + str.substring(i[0], i[1]) + '&nbsp;' + '<span class="tooltiptext">' + sessionStorage.getItem('input').split('\n')[i[2]] + '</span></div>'
         } else {
-          str1 =
-            str1 +
-            "<span class='mode" +
-            i[2].toString() +
-            "'>" +
-            str.substring(i[0], i[1]) +
-            '</span>'
+          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], i[1]) + '</span>'
         }
       }
       return str1
@@ -859,26 +847,6 @@ export default {
         })
       }
     }
-    // doubleClick (object) {
-    //   object.vis.on('doubleClick', (params) => {
-    //     params.event = '[original event]'
-    //     this.$emit('node_double_click', params)
-    //     console.log('双击事件' + params)
-    //     if (this.magnifier === false) {
-    //       this.magnifier = true
-    //       this.focusPosition(params.pointer.canvas, object)
-    //     } else {
-    //       this.magnifier = false
-    //       this.fitAnimated(object)
-    //     }
-    //   })
-    //   object.vis.on('zoom', (params) => {
-    //     params.event = '[original event]'
-    //     this.$emit('zoom', params)
-    //     console.log('滚动滚轮事件' + params)
-    //     this.magnifier = true
-    //   })
-    // }
   }
 }
 </script>
@@ -908,7 +876,7 @@ export default {
   font-size: 46px;
   margin: 0px;
   /* word-wrap: break-word; */
-  height: 70px;
+  height: 700px;
   white-space: nowrap;
   overflow-x: auto;
   overflow-y: hidden;
@@ -951,7 +919,6 @@ span.mode999 {
   border-radius: 6px;
   padding: 5px 0;
   font-size: 12px;
-  /* 定位 */
   position: absolute;
   z-index: 1;
   bottom: 100%;

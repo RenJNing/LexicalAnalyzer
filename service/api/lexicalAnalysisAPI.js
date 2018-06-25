@@ -42,7 +42,7 @@ router.post('/regularExpression', (req, res) => {
     acceptStateList:s_DFA.acceptStateList};
 
 
-  console.log(NFA)
+  console.log(s_DFA)
   // var DFA=new generateDFA
   // var DFA = new generateDFA(NFA)
   //

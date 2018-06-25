@@ -22,7 +22,7 @@ module.exports = function(nfa) {
     console.log("nfa.stateTransition:",nfa.stateTransition);
   function AcceptState(s, id) {
     this.state = s;
-    this.REID = id;
+    this.REId = id;
   }
 
   function StateTransition(s, i, e) {
