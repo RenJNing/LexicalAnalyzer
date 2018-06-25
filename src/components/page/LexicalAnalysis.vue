@@ -859,6 +859,26 @@ export default {
         })
       }
     }
+    // doubleClick (object) {
+    //   object.vis.on('doubleClick', (params) => {
+    //     params.event = '[original event]'
+    //     this.$emit('node_double_click', params)
+    //     console.log('双击事件' + params)
+    //     if (this.magnifier === false) {
+    //       this.magnifier = true
+    //       this.focusPosition(params.pointer.canvas, object)
+    //     } else {
+    //       this.magnifier = false
+    //       this.fitAnimated(object)
+    //     }
+    //   })
+    //   object.vis.on('zoom', (params) => {
+    //     params.event = '[original event]'
+    //     this.$emit('zoom', params)
+    //     console.log('滚动滚轮事件' + params)
+    //     this.magnifier = true
+    //   })
+    // }
   }
 }
 </script>
