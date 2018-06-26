@@ -43,7 +43,9 @@
                 </el-row>
                 <div class="token">
                 <div v-if="NFA.hasbegin">
-                  <div class="p" v-html="NFA.Token"></div>
+                  <div class="scroll_bar">
+                    <div class="p" v-html="NFA.Token"></div>
+                  </div>
                 </div>
                 <div v-else>
                   <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 3, maxRows: 3}" v-model="NFA.TokenForm"></el-input>
@@ -74,7 +76,9 @@
                 </el-row>
                 <div class="token">
                 <div v-if="DFA.hasbegin">
-                  <div class="p" v-html="DFA.Token"></div>
+                  <div class="scroll_bar">
+                    <div class="p" v-html="DFA.Token"></div>
+                  </div>
                 </div>
                 <div v-else>
                   <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 3, maxRows: 3}" v-model="DFA.TokenForm"></el-input>
@@ -105,7 +109,9 @@
                 </el-row>
                 <div class="token">
                 <div v-if="DFA_S.hasbegin">
-                  <div class="p" v-html="DFA_S.Token"></div>
+                  <div class="scroll_bar">
+                    <div class="p" v-html="DFA_S.Token"></div>
+                  </div>
                 </div>
                 <div v-else>
                   <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 3, maxRows: 3}" v-model="DFA_S.TokenForm"></el-input>
@@ -848,6 +854,11 @@ export default {
   overflow-x: auto;
   overflow-y: hidden;
 }
+.scroll_bar{
+  /* background-color: #bbbbbb; */
+  height:80px;
+  overflow: hidden;
+}
 div.graph.active {
   position: fixed;
   bottom: 0;
@@ -888,7 +899,7 @@ span.mode999 {
   padding: 0px 5px;
   font-size: 15px;
   position: absolute;
-  z-index: 1;
+  z-index: 5;
   bottom: 100%;
   left: 50%;
   margin-left: -60px;
