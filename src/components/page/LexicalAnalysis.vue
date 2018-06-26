@@ -46,7 +46,7 @@
                   <div class="p" v-html="NFA.Token"></div>
                 </div>
                 <div v-else>
-                  <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 2, maxRows: 2}" v-model="NFA.TokenForm"></el-input>
+                  <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 3, maxRows: 3}" v-model="NFA.TokenForm"></el-input>
                 </div>
                 </div>
                 <el-row>
@@ -77,7 +77,7 @@
                   <div class="p" v-html="DFA.Token"></div>
                 </div>
                 <div v-else>
-                  <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 2, maxRows: 2}" v-model="DFA.TokenForm"></el-input>
+                  <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 3, maxRows: 3}" v-model="DFA.TokenForm"></el-input>
                 </div>
                 </div>
                 <el-row>
@@ -108,7 +108,7 @@
                   <div class="p" v-html="DFA_S.Token"></div>
                 </div>
                 <div v-else>
-                  <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 2, maxRows: 2}" v-model="DFA_S.TokenForm"></el-input>
+                  <el-input style="font-size:20px;" placeholder="请输入待分析的的源码：" type="textarea" :autosize="{ minRows: 3, maxRows: 3}" v-model="DFA_S.TokenForm"></el-input>
                 </div>
                 </div>
                 <el-row>
@@ -176,36 +176,9 @@ export default {
       },
       NFA: {
         data: {
-          transitionTable: [
-            [[1, 5], [], [], [], [], [], []],
-            [[], [2], [], [], [], [], []],
-            [[3], [], [], [], [], [], []],
-            [[], [], [4], [], [], [], []],
-            [[], [], [], [], [], [], []],
-            [[], [6], [], [], [], [], []],
-            [[7], [], [], [], [], [], []],
-            [[], [], [8], [], [], [], []],
-            [[9], [], [], [], [], [], []],
-            [[], [], [], [10], [], [], []],
-            [[11], [], [], [], [], [], []],
-            [[], [], [], [], [12], [], []],
-            [[13], [], [], [], [], [], []],
-            [[], [], [], [], [], [14], []],
-            [[15], [], [], [], [], [], []],
-            [[], [], [], [], [], [], [16]],
-            [[], [], [], [], [], [], []]
-          ],
-          alphabet: ['ε', 'd', 'o', 'u', 'b', 'l', 'e'],
-          acceptState: [
-            {
-              state: 4,
-              REId: 0
-            },
-            {
-              state: 16,
-              REId: 1
-            }
-          ]
+          transitionTable: [],
+          alphabet: [],
+          acceptState: []
         },
         machine: null,
         nodes: null,
@@ -224,13 +197,9 @@ export default {
       },
       DFA: {
         data: {
-          transitionTable: [
-          ],
-
+          transitionTable: [],
           alphabet: [],
-
-          acceptState: [
-          ]
+          acceptState: []
         },
         machine: null,
         nodes: null,
@@ -248,37 +217,9 @@ export default {
       },
       DFA_S: {
         data: {
-          transitionTable: [
-            [[], [1], [], [], [], [], [7]], // 0
-            [[], [], [], [], [2], [], []], // 1
-            [[], [], [], [], [], [3], []], // 2
-            [[4], [], [], [], [], [], []], // 3
-            [[], [], [], [5], [], [], []], // 4
-            [[], [], [6], [], [], [], []], // 5
-            [[], [], [], [], [], [], []], // 6
-            [[], [], [], [], [], [], []] // 7
-          ],
-
-          alphabet: ['b', 'd', 'e', 'l', 'o', 'u', 'x'],
-
-          acceptState: [
-            {
-              state: 2,
-              REId: 0
-            },
-            {
-              state: 6,
-              REId: 1
-            },
-            {
-              state: 1,
-              REId: 2
-            },
-            {
-              state: 7,
-              REId: 3
-            }
-          ]
+          transitionTable: [],
+          alphabet: [],
+          acceptState: []
         },
         machine: null,
         nodes: null,
@@ -294,7 +235,6 @@ export default {
         autobuttonText: '自动展示',
         isFull_screen: false
       },
-      layout: true,
       RE_offset: 1,
       isFirsttime: true
     }
@@ -862,7 +802,7 @@ export default {
 }
 .token {
   background-color: #bbbbbb;
-  height: 70px;
+  height: 100px;
 }
 .controller {
   width: 100%;
@@ -873,10 +813,11 @@ export default {
 }
 .p {
   text-align: center;
-  font-size: 46px;
+  font-size: 45px;
   margin: 0px;
   /* word-wrap: break-word; */
-  height: 700px;
+  height: 60px;
+  padding:20px 10px;
   white-space: nowrap;
   overflow-x: auto;
   overflow-y: hidden;
@@ -912,13 +853,14 @@ span.mode999 {
 
 .tooltip .tooltiptext {
   visibility: hidden;
-  width: 120px;
+  min-width: 120px;
+  height:20px;
   background-color: black;
   color: #fff;
   text-align: center;
   border-radius: 6px;
-  padding: 5px 0;
-  font-size: 12px;
+  padding: 0px 5px;
+  font-size: 15px;
   position: absolute;
   z-index: 1;
   bottom: 100%;
