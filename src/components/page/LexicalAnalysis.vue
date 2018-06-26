@@ -68,8 +68,8 @@
                     <span style="font-size: 35px;">DFA</span>
                     <div style="float: right">
                       <!-- <el-button @click="layoutChange()">{{layoutText}}</el-button> -->
-                      <el-button @click="full_screen(DFA)">全屏/还原</el-button>
-                      <el-button @click="fitAnimated(DFA)">适应屏幕</el-button>
+                      <el-button type="info" :icon="DFA.zoomicon" circle @click="full_screen(DFA)"></el-button>
+                      <el-button type="info" icon="el-icon-view" circle @click="fitAnimated(DFA)"></el-button>
                     </div>
                     <div class="vis" id="DFAvis"></div>
                   </div>
@@ -86,10 +86,10 @@
                 </div>
                 <el-row>
                   <div class="controller">
-                    <el-button @click="startButton(DFA)" :type="DFA.startbuttonType">{{DFA.startbuttonText}}</el-button>
-                    <el-button @click="previousFocus(DFA)">上一步</el-button>
-                    <el-button @click="nextFocus(DFA)">下一步</el-button>
-                    <el-button @click="autoControlFocus(DFA)" :type="DFA.autobuttonType" plain>{{DFA.autobuttonText}}</el-button>
+                    <el-button :disabled="isFirsttime" @click="startButton(DFA)" :type="DFA.startbuttonType">{{DFA.startbuttonText}}</el-button>
+                    <el-button :disabled="!DFA.hasbegin" @click="previousFocus(DFA)">上一步</el-button>
+                    <el-button :disabled="!DFA.hasbegin" @click="nextFocus(DFA)">下一步</el-button>
+                    <el-button :disabled="!DFA.hasbegin" @click="autoControlFocus(DFA)" :type="DFA.autobuttonType" plain>{{DFA.autobuttonText}}</el-button>
                   </div>
                 </el-row>
               </div>
@@ -101,8 +101,8 @@
                     <span style="font-size: 35px;">DFA化简</span>
                     <div style="float: right">
                       <!-- <el-button @click="layoutChange()">{{layoutText}}</el-button> -->
-                      <el-button @click="full_screen(DFA_S)">全屏/还原</el-button>
-                      <el-button @click="fitAnimated(DFA_S)">适应屏幕</el-button>
+                      <el-button type="info" :icon="DFA_S.zoomicon" circle @click="full_screen(DFA_S)"></el-button>
+                      <el-button type="info" icon="el-icon-view" circle @click="fitAnimated(DFA_S)"></el-button>
                     </div>
                     <div class="vis" id="DFA_Svis"></div>
                   </div>
@@ -119,10 +119,10 @@
                 </div>
                 <el-row>
                   <div class="controller">
-                    <el-button @click="startButton(DFA_S)" :type="DFA_S.startbuttonType">{{DFA_S.startbuttonText}}</el-button>
-                    <el-button @click="previousFocus(DFA_S)">上一步</el-button>
-                    <el-button @click="nextFocus(DFA_S)">下一步</el-button>
-                    <el-button @click="autoControlFocus(DFA_S)" :type="DFA_S.autobuttonType" plain>{{DFA_S.autobuttonText}}</el-button>
+                    <el-button :disabled="isFirsttime" @click="startButton(DFA_S)" :type="DFA_S.startbuttonType">{{DFA_S.startbuttonText}}</el-button>
+                    <el-button :disabled="!DFA_S.hasbegin" @click="previousFocus(DFA_S)">上一步</el-button>
+                    <el-button :disabled="!DFA_S.hasbegin" @click="nextFocus(DFA_S)">下一步</el-button>
+                    <el-button :disabled="!DFA_S.hasbegin" @click="autoControlFocus(DFA_S)" :type="DFA_S.autobuttonType" plain>{{DFA_S.autobuttonText}}</el-button>
                   </div>
                 </el-row>
               </div>
@@ -221,7 +221,8 @@ export default {
         startbuttonText: '开始分词',
         autobuttonType: 'primary',
         autobuttonText: '自动展示',
-        isFull_screen: false
+        isFull_screen: false,
+        zoomicon: 'el-icon-zoom-in'
       },
       DFA_S: {
         data: {
@@ -242,7 +243,8 @@ export default {
         startbuttonText: '开始分词',
         autobuttonType: 'primary',
         autobuttonText: '自动展示',
-        isFull_screen: false
+        isFull_screen: false,
+        zoomicon: 'el-icon-zoom-in'
       },
       RE_offset: 1,
       isFirsttime: true
@@ -272,12 +274,10 @@ export default {
               self.DFA.data.transitionTable = response.data[1].transitionTable
               self.DFA.data.alphabet = response.data[1].alphabet
               self.DFA.data.acceptState = response.data[1].acceptStateList
-              console.log(self.DFA.data.acceptState)
               self.DFA_S.data.transitionTable =
                 response.data[2].transitionTable
               self.DFA_S.data.alphabet = response.data[2].alphabet
               self.DFA_S.data.acceptState = response.data[2].acceptStateList
-              console.log(self.DFA_S.data.acceptState)
               sessionStorage.setItem('input', self.REForm.RE)
               self.addCSS(self.getCsstext())
               self.isFirsttime = false
@@ -432,7 +432,7 @@ export default {
         object.startbuttonType = 'primary'
         object.startbuttonText = '开始分词'
         self.refresh(object)
-        if (self.NFA.autobuttonText === '停止') {
+        if (object.autobuttonText === '停止') {
           self.autoControl(object)
         }
       }
