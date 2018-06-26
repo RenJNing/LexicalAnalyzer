@@ -187,6 +187,7 @@ export default {
         nextState: null,
         TokenForm: '',
         Token: '',
+        TokenId: 0,
         hasbegin: false,
         startbuttonType: 'primary',
         startbuttonText: '开始分词',
@@ -208,6 +209,7 @@ export default {
         nextState: null,
         TokenForm: '',
         Token: '',
+        TokenId: 1,
         hasbegin: false,
         startbuttonType: 'primary',
         startbuttonText: '开始分词',
@@ -228,6 +230,7 @@ export default {
         nextState: null,
         TokenForm: '',
         Token: '',
+        TokenId: 2,
         hasbegin: false,
         startbuttonType: 'primary',
         startbuttonText: '开始分词',
@@ -252,33 +255,37 @@ export default {
             re.push(input[i].substring(input[i].indexOf('=') + 1))
           }
           let url = '/api/lexical/regularExpression'
-          let Params = {RE: re}
-          self.$axios.post(url, Params).then(function (response) {
-            console.log(response)
-            self.NFA.data.transitionTable = response.data[0].transitionTable
-            self.NFA.data.alphabet = response.data[0].alphabet
-            self.NFA.data.acceptState = response.data[0].acceptStateList
-            self.DFA.data.transitionTable = response.data[1].transitionTable
-            self.DFA.data.alphabet = response.data[1].alphabet
-            self.DFA.data.acceptState = response.data[1].acceptStateList
-            console.log(self.DFA.data.acceptState)
-            self.DFA_S.data.transitionTable = response.data[2].transitionTable
-            self.DFA_S.data.alphabet = response.data[2].alphabet
-            self.DFA_S.data.acceptState = response.data[2].acceptStateList
-            console.log(self.DFA_S.data.acceptState)
-            sessionStorage.setItem('input', self.REForm.RE)
-            self.addCSS(self.getCsstext())
-            self.isFirsttime = false
-            self.fresh()
-          }).catch(function (error) {
-            self.loading = false
-            console.log(error)
-            Message({
-              message: '请检查网络并重试',
-              type: 'error',
-              center: true
+          let Params = { RE: re }
+          self.$axios
+            .post(url, Params)
+            .then(function (response) {
+              console.log(response)
+              self.NFA.data.transitionTable = response.data[0].transitionTable
+              self.NFA.data.alphabet = response.data[0].alphabet
+              self.NFA.data.acceptState = response.data[0].acceptStateList
+              self.DFA.data.transitionTable = response.data[1].transitionTable
+              self.DFA.data.alphabet = response.data[1].alphabet
+              self.DFA.data.acceptState = response.data[1].acceptStateList
+              console.log(self.DFA.data.acceptState)
+              self.DFA_S.data.transitionTable =
+                response.data[2].transitionTable
+              self.DFA_S.data.alphabet = response.data[2].alphabet
+              self.DFA_S.data.acceptState = response.data[2].acceptStateList
+              console.log(self.DFA_S.data.acceptState)
+              sessionStorage.setItem('input', self.REForm.RE)
+              self.addCSS(self.getCsstext())
+              self.isFirsttime = false
+              self.fresh()
             })
-          })
+            .catch(function (error) {
+              self.loading = false
+              console.log(error)
+              Message({
+                message: '请检查网络并重试',
+                type: 'error',
+                center: true
+              })
+            })
         } else {
           Message({
             message: '格式错误，请检查输入',
@@ -668,10 +675,15 @@ export default {
       recognized.push(remains)
       let html = self.cut(object.TokenForm, recognized)
       object.Token = html
-      console.log(document.getElementsByClassName('graph')[0].offsetWidth)
-      document.getElementsByClassName('p')[0].scrollLeft =
-        document.getElementsByClassName('mode999')[0].offsetLeft -
-        document.getElementsByClassName('graph')[0].offsetWidth / 2
+      // 自动滑动滚动条，把扫描框聚焦在中央
+      try {
+        document.getElementsByClassName('p')[object.TokenId].scrollLeft =
+          document.getElementsByClassName('mode999')[object.TokenId]
+            .offsetLeft -
+          document.getElementsByClassName('token')[object.TokenId].offsetWidth /
+            2
+      } catch (e) {
+      }
     },
     changeGraph (object, status) {
       const self = this
@@ -691,11 +703,25 @@ export default {
     cut (str, arr) {
       let str1 = ''
       for (let i of arr) {
-        console.log(i)
         if (i[2] < 888) {
-          str1 = str1 + "<div class='tooltip mode" + i[2].toString() + "'>" + str.substring(i[0], i[1]) + '&nbsp;' + '<span class="tooltiptext">' + sessionStorage.getItem('input').split('\n')[i[2]] + '</span></div>'
+          str1 =
+            str1 +
+            "<div class='tooltip mode" +
+            i[2].toString() +
+            "'>" +
+            str.substring(i[0], i[1]) +
+            '&nbsp;' +
+            '<span class="tooltiptext">' +
+            sessionStorage.getItem('input').split('\n')[i[2]] +
+            '</span></div>'
         } else {
-          str1 = str1 + "<span class='mode" + i[2].toString() + "'>" + str.substring(i[0], i[1]) + '</span>'
+          str1 =
+            str1 +
+            "<span class='mode" +
+            i[2].toString() +
+            "'>" +
+            str.substring(i[0], i[1]) +
+            '</span>'
         }
       }
       return str1
@@ -817,7 +843,7 @@ export default {
   margin: 0px;
   /* word-wrap: break-word; */
   height: 60px;
-  padding:20px 10px;
+  padding: 20px 10px;
   white-space: nowrap;
   overflow-x: auto;
   overflow-y: hidden;
@@ -854,7 +880,7 @@ span.mode999 {
 .tooltip .tooltiptext {
   visibility: hidden;
   min-width: 120px;
-  height:20px;
+  height: 20px;
   background-color: black;
   color: #fff;
   text-align: center;
