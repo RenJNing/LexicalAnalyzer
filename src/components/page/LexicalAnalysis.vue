@@ -154,11 +154,19 @@ export default {
       let input = value.split('\n')
       for (let i = 0; i < input.length; i++) {
         try {
-          let re = new RegExp(input[i].substring(input[i].indexOf('=') + 1))
+          let index = input[i].indexOf('=')
+          if (index === -1) {
+            callback(new Error('第' + (i + 1).toString() + "条规则缺少'=',请按格式输入"))
+          } else if (index < 1) {
+            // 等式左侧不能为空
+            callback(new Error('第' + (i + 1).toString() + '条规则等式左侧不能为空'))
+          } else {
+            let re = new RegExp(input[i].substring(input[i].indexOf('=') + 1))
+          }
         } catch (e) {
           callback(
             new Error(
-              '第' + (i + 1).toString() + '条正则表达式不合法，请重新输入'
+              '第' + (i + 1).toString() + '条规则不合法，请重新输入'
             )
           )
         }
@@ -173,6 +181,7 @@ export default {
       rulesRE: {
         RE: [
           { required: true, message: '输入不能为空', tirgger: 'blur' },
+          { max: 1200, message: '不能超过1200个字符', tirgger: 'blur' },
           { validator: validateRe, trigger: 'blur' }
         ]
       },
